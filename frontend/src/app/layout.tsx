@@ -39,22 +39,22 @@ const shouldTrackLocalhost = process.env.NEXT_PUBLIC_DATAFAST_ALLOW_LOCALHOST ==
 const isDataFastEnabled = Boolean(dataFastWebsiteId && dataFastDomain);
 
 export const metadata: Metadata = {
-  title: "SupoClip",
-  description: "Turn long videos into viral-ready shorts.",
+  title: "AutoClipper AI - Turn Long Videos into Viral Shorts & Reels",
+  description: "AutoClipper AI is the best open-source AI video clipper and OpusClip alternative. Automatically convert long-form podcasts and videos into engaging, captioned short clips for TikTok, Instagram Reels, and YouTube Shorts.",
   metadataBase: getMetadataBase(),
   icons: {
     icon: "/icon.png",
   },
   openGraph: {
-    title: "SupoClip",
-    description: "Turn long videos into viral-ready shorts.",
-    siteName: "SupoClip",
+    title: "AutoClipper AI - Open Source AI Video Clipper",
+    description: "Automatically convert long-form podcasts and videos into engaging, captioned short clips for TikTok, Instagram Reels, and YouTube Shorts.",
+    siteName: "AutoClipper AI",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "SupoClip",
-    description: "Turn long videos into viral-ready shorts.",
+    title: "AutoClipper AI - Open Source AI Video Clipper",
+    description: "Automatically convert long-form podcasts and videos into engaging, captioned short clips for TikTok, Instagram Reels, and YouTube Shorts.",
   },
 };
 

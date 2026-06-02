@@ -404,7 +404,7 @@ export default function LandingPage() {
                   </Button>
                 </Link>
                 <a href="#how-it-works">
-                  <Button variant="outline" size="lg" className="px-8 h-12 text-sm border-slate-700 hover:bg-slate-800 text-slate-300">
+                  <Button variant="ghost" size="lg" className="px-8 h-12 text-sm border border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white transition-all duration-300">
                     Pelajari Cara Kerja
                   </Button>
                 </a>
@@ -708,6 +708,21 @@ export default function LandingPage() {
 
 /* ─── Hero Visual ─── */
 function HeroVisual() {
+  const [subtitleIndex, setSubtitleIndex] = useState(0);
+  const subtitles = [
+    "Hari ini kita akan membahas...",
+    "bagaimana cara membuat konten...",
+    "yang langsung viral di internet!",
+    "Hanya menggunakan kecerdasan buatan.",
+  ];
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSubtitleIndex((prev) => (prev + 1) % subtitles.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="relative w-full max-w-md">
       <Card className="py-0 gap-0 overflow-hidden shadow-2xl bg-slate-950/80 backdrop-blur-xl border border-slate-800/80">
@@ -717,14 +732,19 @@ function HeroVisual() {
             className="relative w-full rounded-lg overflow-hidden mb-4 bg-slate-900 border border-slate-800"
             style={{ aspectRatio: "16/9" }}
           >
-            {/* Gradient simulating video content */}
-            <div
-              className="absolute inset-0 bg-gradient-to-br from-violet-950/20 via-slate-900 to-cyan-950/20"
+            {/* Real video play simulation */}
+            <video
+              src="https://assets.mixkit.co/videos/preview/mixkit-recording-a-podcast-in-a-studio-34533-large.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover opacity-80"
             />
 
             {/* Subtle grid overlay */}
             <div
-              className="absolute inset-0 opacity-[0.06]"
+              className="absolute inset-0 opacity-[0.04] pointer-events-none"
               style={{
                 backgroundImage:
                   "linear-gradient(currentColor 1px, transparent 1px), linear-gradient(90deg, currentColor 1px, transparent 1px)",
@@ -732,53 +752,53 @@ function HeroVisual() {
               }}
             />
 
-            {/* Play button */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-12 h-12 rounded-full bg-violet-600/90 hover:bg-violet-500 backdrop-blur-sm flex items-center justify-center shadow-lg transition-transform hover:scale-105 cursor-pointer">
-                <Play className="w-5 h-5 text-white fill-white ml-0.5" />
-              </div>
-            </div>
-
             {/* Scanning line */}
             <div
-              className="absolute top-0 bottom-0 w-0.5 bg-cyan-400 landing-scan-line"
+              className="absolute top-0 bottom-0 w-0.5 bg-cyan-400 landing-scan-line pointer-events-none"
               style={{
                 boxShadow: "0 0 15px #06b6d4, 0 0 30px #06b6d4",
                 animation: "landing-scan-line 3s ease-in-out infinite",
               }}
             />
 
-            {/* Detected clip regions */}
-            {[
-              { left: "8%", score: 92, delay: 0 },
-              { left: "38%", score: 87, delay: 0.15 },
-              { left: "68%", score: 78, delay: 0.3 },
-            ].map((clip, i) => (
-              <div
-                key={i}
-                className="absolute top-[8%] bottom-[8%] w-[22%] rounded-md border bg-violet-500/[0.03]"
-                style={{
-                  left: clip.left,
-                  borderColor: "rgba(139, 92, 246, 0.4)",
-                  animation: `landing-clip-pulse 2.5s ease-in-out ${clip.delay}s infinite`,
-                }}
-              >
-                <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] px-1.5 py-0 h-5 bg-gradient-to-r from-violet-600 to-cyan-600 text-white border-0">
-                  {clip.score}%
-                </Badge>
-              </div>
-            ))}
+            {/* Simulated face tracking box */}
+            <div
+              className="absolute border-2 border-dashed border-cyan-400 rounded-md pointer-events-none"
+              style={{
+                top: "15%",
+                left: "22%",
+                width: "24%",
+                height: "50%",
+                boxShadow: "0 0 10px rgba(6, 182, 212, 0.3)",
+                animation: "landing-clip-pulse 2s ease-in-out infinite",
+              }}
+            >
+              <span className="absolute -top-5 left-0 bg-cyan-500 text-slate-950 text-[8px] font-bold px-1 rounded shadow">
+                WAJAH 99.8%
+              </span>
+            </div>
 
-            {/* Timeline bar */}
-            <div className="absolute bottom-2 left-3 right-3 h-1 rounded-full overflow-hidden bg-slate-800">
-              <div className="h-full w-[65%] rounded-full bg-gradient-to-r from-violet-500 to-cyan-500" />
-              {[15, 42, 73].map((pos, i) => (
-                <div
-                  key={i}
-                  className="absolute top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-white shadow"
-                  style={{ left: `${pos}%` }}
-                />
-              ))}
+            <div
+              className="absolute border-2 border-dashed border-violet-500 rounded-md pointer-events-none"
+              style={{
+                top: "18%",
+                left: "54%",
+                width: "24%",
+                height: "50%",
+                boxShadow: "0 0 10px rgba(124, 58, 237, 0.3)",
+                animation: "landing-clip-pulse 2s ease-in-out 0.5s infinite",
+              }}
+            >
+              <span className="absolute -top-5 left-0 bg-violet-500 text-white text-[8px] font-bold px-1 rounded shadow">
+                WAJAH 98.5%
+              </span>
+            </div>
+
+            {/* Word-synced subtitles simulation */}
+            <div className="absolute bottom-6 left-0 right-0 text-center px-4 pointer-events-none">
+              <span className="bg-slate-950/80 text-yellow-300 font-bold px-3 py-1 rounded text-xs border border-slate-800 shadow backdrop-blur-sm">
+                {subtitles[subtitleIndex]}
+              </span>
             </div>
           </div>
 
@@ -793,41 +813,57 @@ function HeroVisual() {
           <div className="flex gap-2.5 justify-center">
             {[
               {
-                bg: "linear-gradient(135deg, #1e1b4b, #0f172a)",
-                borderColor: "rgba(139, 92, 246, 0.3)",
+                borderColor: "rgba(139, 92, 246, 0.5)",
                 score: 92,
                 label: "Momen Hook",
+                position: "object-left", // focus on left speaker
+                caption: "Ini adalah rahasia...",
               },
               {
-                bg: "linear-gradient(135deg, #063c46, #0f172a)",
-                borderColor: "rgba(6, 182, 212, 0.3)",
+                borderColor: "rgba(6, 182, 212, 0.5)",
                 score: 87,
                 label: "Poin Kunci",
+                position: "object-center", // focus on both
+                caption: "membuat konten viral...",
               },
               {
-                bg: "linear-gradient(135deg, #1e1b4b, #0f172a)",
-                borderColor: "rgba(139, 92, 246, 0.3)",
+                borderColor: "rgba(139, 92, 246, 0.5)",
                 score: 78,
                 label: "CTA Akhir",
+                position: "object-right", // focus on right speaker
+                caption: "Mulai sekarang!",
               },
             ].map((clip, i) => (
               <div
                 key={i}
-                className="relative flex-1 rounded-lg overflow-hidden border shadow-md"
+                className="relative flex-1 rounded-lg overflow-hidden border shadow-md bg-slate-900"
                 style={{
                   aspectRatio: "9/16",
-                  background: clip.bg,
                   borderColor: clip.borderColor,
                   animation: `landing-float ${2.5 + i * 0.3}s ease-in-out ${
                     i * 0.2
                   }s infinite`,
                 }}
               >
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-7 h-7 rounded-full bg-slate-900/80 flex items-center justify-center shadow-sm border border-slate-800">
-                    <Play className="w-3.5 h-3.5 text-cyan-400 fill-cyan-400 ml-px" />
-                  </div>
+                {/* Real video cropped inside vertical aspect */}
+                <video
+                  src="https://assets.mixkit.co/videos/preview/mixkit-recording-a-podcast-in-a-studio-34533-large.mp4"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className={`absolute inset-0 w-full h-full object-cover ${clip.position}`}
+                />
+
+                <div className="absolute inset-0 bg-slate-950/10 pointer-events-none" />
+
+                {/* Subtitle simulation inside clip */}
+                <div className="absolute bottom-5 left-0 right-0 text-center px-1 pointer-events-none">
+                  <span className="bg-slate-950/90 text-yellow-300 font-extrabold text-[8px] px-1 py-0.5 rounded shadow border border-slate-800">
+                    {clip.caption}
+                  </span>
                 </div>
+
                 <div className="absolute bottom-1.5 left-1 right-1">
                   <div className="text-[7px] text-center font-medium py-0.5 px-1 rounded bg-slate-950/80 border border-slate-800 text-slate-300">
                     {clip.label}

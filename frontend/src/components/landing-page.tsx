@@ -708,176 +708,23 @@ export default function LandingPage() {
 
 /* ─── Hero Visual ─── */
 function HeroVisual() {
-  const [subtitleIndex, setSubtitleIndex] = useState(0);
-  const subtitles = [
-    "Hari ini kita akan membahas...",
-    "bagaimana cara membuat konten...",
-    "yang langsung viral di internet!",
-    "Hanya menggunakan kecerdasan buatan.",
-  ];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSubtitleIndex((prev) => (prev + 1) % subtitles.length);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <div className="relative w-full max-w-md">
       <Card className="py-0 gap-0 overflow-hidden shadow-2xl bg-slate-950/80 backdrop-blur-xl border border-slate-800/80">
-        <CardContent className="p-5">
-          {/* Wide video frame */}
-          <div
-            className="relative w-full rounded-lg overflow-hidden mb-4 bg-slate-900 border border-slate-800"
-            style={{ aspectRatio: "16/9" }}
-          >
-            {/* Real video play simulation */}
-            <video
-              src="https://assets.mixkit.co/videos/preview/mixkit-recording-a-podcast-in-a-studio-34533-large.mp4"
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="absolute inset-0 w-full h-full object-cover opacity-80"
+        <CardContent className="p-0">
+          <div className="relative w-full overflow-hidden bg-slate-900 border border-slate-800 rounded-lg">
+            <Image
+              src="/ai_video_simulation.png"
+              alt="AutoClipper AI Video Simulation"
+              width={512}
+              height={512}
+              className="w-full h-auto object-cover"
+              priority
             />
-
-            {/* Subtle grid overlay */}
-            <div
-              className="absolute inset-0 opacity-[0.04] pointer-events-none"
-              style={{
-                backgroundImage:
-                  "linear-gradient(currentColor 1px, transparent 1px), linear-gradient(90deg, currentColor 1px, transparent 1px)",
-                backgroundSize: "20px 20px",
-              }}
-            />
-
-            {/* Scanning line */}
-            <div
-              className="absolute top-0 bottom-0 w-0.5 bg-cyan-400 landing-scan-line pointer-events-none"
-              style={{
-                boxShadow: "0 0 15px #06b6d4, 0 0 30px #06b6d4",
-                animation: "landing-scan-line 3s ease-in-out infinite",
-              }}
-            />
-
-            {/* Simulated face tracking box */}
-            <div
-              className="absolute border-2 border-dashed border-cyan-400 rounded-md pointer-events-none"
-              style={{
-                top: "15%",
-                left: "22%",
-                width: "24%",
-                height: "50%",
-                boxShadow: "0 0 10px rgba(6, 182, 212, 0.3)",
-                animation: "landing-clip-pulse 2s ease-in-out infinite",
-              }}
-            >
-              <span className="absolute -top-5 left-0 bg-cyan-500 text-slate-950 text-[8px] font-bold px-1 rounded shadow">
-                WAJAH 99.8%
-              </span>
-            </div>
-
-            <div
-              className="absolute border-2 border-dashed border-violet-500 rounded-md pointer-events-none"
-              style={{
-                top: "18%",
-                left: "54%",
-                width: "24%",
-                height: "50%",
-                boxShadow: "0 0 10px rgba(124, 58, 237, 0.3)",
-                animation: "landing-clip-pulse 2s ease-in-out 0.5s infinite",
-              }}
-            >
-              <span className="absolute -top-5 left-0 bg-violet-500 text-white text-[8px] font-bold px-1 rounded shadow">
-                WAJAH 98.5%
-              </span>
-            </div>
-
-            {/* Word-synced subtitles simulation */}
-            <div className="absolute bottom-6 left-0 right-0 text-center px-4 pointer-events-none">
-              <span className="bg-slate-950/80 text-yellow-300 font-bold px-3 py-1 rounded text-xs border border-slate-800 shadow backdrop-blur-sm">
-                {subtitles[subtitleIndex]}
-              </span>
-            </div>
-          </div>
-
-          {/* Scissors divider */}
-          <div className="flex items-center gap-2 mb-4">
-            <div className="flex-1 h-px bg-slate-800" />
-            <Scissors className="w-4 h-4 text-slate-500 rotate-90" />
-            <div className="flex-1 h-px bg-slate-800" />
-          </div>
-
-          {/* Extracted vertical clips */}
-          <div className="flex gap-2.5 justify-center">
-            {[
-              {
-                borderColor: "rgba(139, 92, 246, 0.5)",
-                score: 92,
-                label: "Momen Hook",
-                position: "object-left", // focus on left speaker
-                caption: "Ini adalah rahasia...",
-              },
-              {
-                borderColor: "rgba(6, 182, 212, 0.5)",
-                score: 87,
-                label: "Poin Kunci",
-                position: "object-center", // focus on both
-                caption: "membuat konten viral...",
-              },
-              {
-                borderColor: "rgba(139, 92, 246, 0.5)",
-                score: 78,
-                label: "CTA Akhir",
-                position: "object-right", // focus on right speaker
-                caption: "Mulai sekarang!",
-              },
-            ].map((clip, i) => (
-              <div
-                key={i}
-                className="relative flex-1 rounded-lg overflow-hidden border shadow-md bg-slate-900"
-                style={{
-                  aspectRatio: "9/16",
-                  borderColor: clip.borderColor,
-                  animation: `landing-float ${2.5 + i * 0.3}s ease-in-out ${
-                    i * 0.2
-                  }s infinite`,
-                }}
-              >
-                {/* Real video cropped inside vertical aspect */}
-                <video
-                  src="https://assets.mixkit.co/videos/preview/mixkit-recording-a-podcast-in-a-studio-34533-large.mp4"
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className={`absolute inset-0 w-full h-full object-cover ${clip.position}`}
-                />
-
-                <div className="absolute inset-0 bg-slate-950/10 pointer-events-none" />
-
-                {/* Subtitle simulation inside clip */}
-                <div className="absolute bottom-5 left-0 right-0 text-center px-1 pointer-events-none">
-                  <span className="bg-slate-950/90 text-yellow-300 font-extrabold text-[8px] px-1 py-0.5 rounded shadow border border-slate-800">
-                    {clip.caption}
-                  </span>
-                </div>
-
-                <div className="absolute bottom-1.5 left-1 right-1">
-                  <div className="text-[7px] text-center font-medium py-0.5 px-1 rounded bg-slate-950/80 border border-slate-800 text-slate-300">
-                    {clip.label}
-                  </div>
-                </div>
-                <Badge className="absolute top-1 right-1 text-[8px] px-1 py-0 h-4 bg-violet-600/90 text-white border-0">
-                  {clip.score}
-                </Badge>
-              </div>
-            ))}
           </div>
         </CardContent>
       </Card>
-
+      
       {/* Decorative blur spots */}
       <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-violet-500/10 blur-3xl -z-10 animate-pulse" />
       <div className="absolute -bottom-8 -left-8 w-24 h-24 rounded-full bg-cyan-500/10 blur-2xl -z-10 animate-pulse" />

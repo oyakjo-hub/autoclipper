@@ -95,7 +95,7 @@ async function ensureDatabaseSchema() {
     // 1. Ensure all core tables exist (run in dependency order)
     await prisma.$executeRawUnsafe(`
       CREATE TABLE IF NOT EXISTS "users" (
-        id VARCHAR(36) PRIMARY KEY,
+        id TEXT PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
         email VARCHAR(255) UNIQUE NOT NULL,
         "emailVerified" BOOLEAN NOT NULL DEFAULT false,
@@ -107,7 +107,7 @@ async function ensureDatabaseSchema() {
     
     await prisma.$executeRawUnsafe(`
       CREATE TABLE IF NOT EXISTS "sources" (
-        id VARCHAR(36) PRIMARY KEY,
+        id TEXT PRIMARY KEY,
         type VARCHAR(20) NOT NULL,
         title VARCHAR(500) NOT NULL,
         url VARCHAR(1000),
@@ -118,10 +118,10 @@ async function ensureDatabaseSchema() {
 
     await prisma.$executeRawUnsafe(`
       CREATE TABLE IF NOT EXISTS "tasks" (
-        id VARCHAR(36) PRIMARY KEY,
-        user_id VARCHAR(36) NOT NULL REFERENCES "users"(id) ON DELETE CASCADE,
-        source_id VARCHAR(36) REFERENCES "sources"(id) ON DELETE SET NULL,
-        generated_clips_ids VARCHAR(36)[],
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL REFERENCES "users"(id) ON DELETE CASCADE,
+        source_id TEXT REFERENCES "sources"(id) ON DELETE SET NULL,
+        generated_clips_ids TEXT[],
         status VARCHAR(20) NOT NULL DEFAULT 'pending',
         progress INTEGER DEFAULT 0,
         progress_message TEXT,
@@ -138,23 +138,23 @@ async function ensureDatabaseSchema() {
 
     await prisma.$executeRawUnsafe(`
       CREATE TABLE IF NOT EXISTS "session" (
-        id VARCHAR(36) PRIMARY KEY,
+        id TEXT PRIMARY KEY,
         "expiresAt" TIMESTAMP WITH TIME ZONE NOT NULL,
-        token VARCHAR(255) UNIQUE NOT NULL,
+        token TEXT UNIQUE NOT NULL,
         "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL,
         "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL,
         "ipAddress" VARCHAR(255),
         "userAgent" TEXT,
-        "userId" VARCHAR(36) NOT NULL REFERENCES "users"(id) ON DELETE CASCADE
+        "userId" TEXT NOT NULL REFERENCES "users"(id) ON DELETE CASCADE
       );
     `);
 
     await prisma.$executeRawUnsafe(`
       CREATE TABLE IF NOT EXISTS "account" (
-        id VARCHAR(36) PRIMARY KEY,
-        "accountId" VARCHAR(255) NOT NULL,
-        "providerId" VARCHAR(255) NOT NULL,
-        "userId" VARCHAR(36) NOT NULL REFERENCES "users"(id) ON DELETE CASCADE,
+        id TEXT PRIMARY KEY,
+        "accountId" TEXT NOT NULL,
+        "providerId" TEXT NOT NULL,
+        "userId" TEXT NOT NULL REFERENCES "users"(id) ON DELETE CASCADE,
         "accessToken" TEXT,
         "refreshToken" TEXT,
         "idToken" TEXT,
@@ -169,9 +169,9 @@ async function ensureDatabaseSchema() {
 
     await prisma.$executeRawUnsafe(`
       CREATE TABLE IF NOT EXISTS "verification" (
-        id VARCHAR(36) PRIMARY KEY,
-        identifier VARCHAR(255) NOT NULL,
-        value VARCHAR(255) NOT NULL,
+        id TEXT PRIMARY KEY,
+        identifier TEXT NOT NULL,
+        value TEXT NOT NULL,
         "expiresAt" TIMESTAMP WITH TIME ZONE NOT NULL,
         "createdAt" TIMESTAMP WITH TIME ZONE,
         "updatedAt" TIMESTAMP WITH TIME ZONE
@@ -180,7 +180,7 @@ async function ensureDatabaseSchema() {
 
     await prisma.$executeRawUnsafe(`
       CREATE TABLE IF NOT EXISTS "stripe_webhook_events" (
-        id VARCHAR(255) PRIMARY KEY,
+        id TEXT PRIMARY KEY,
         type VARCHAR(255) NOT NULL,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
@@ -191,7 +191,7 @@ async function ensureDatabaseSchema() {
         setting_key VARCHAR(100) PRIMARY KEY,
         encrypted_value TEXT NOT NULL,
         prefer_admin_value BOOLEAN NOT NULL DEFAULT false,
-        updated_by VARCHAR(36) REFERENCES "users"(id) ON DELETE SET NULL,
+        updated_by TEXT REFERENCES "users"(id) ON DELETE SET NULL,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );

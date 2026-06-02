@@ -11,7 +11,6 @@ import {
   Scissors,
   Sparkles,
   Youtube,
-  Github,
   ArrowRight,
   Play,
   Target,
@@ -30,8 +29,6 @@ import {
 } from "lucide-react";
 import { isLandingOnlyModeEnabled } from "@/lib/app-flags";
 import { getPublicBillingPlans } from "@/lib/billing-plans";
-
-const HOSTED_APP_URL = "https://supoclip.com";
 
 function ScrollReveal({
   children,
@@ -79,100 +76,111 @@ function ScrollReveal({
 const FEATURES = [
   {
     icon: ScanFace,
-    title: "Face-Centered Cropping",
+    title: "Deteksi Wajah Pintar (9:16)",
     description:
-      "MediaPipe + OpenCV detects and tracks faces for perfect 9:16 vertical framing.",
+      "Teknologi MediaPipe + OpenCV otomatis mendeteksi & mengikuti wajah agar subjek selalu berada di tengah frame vertikal.",
   },
   {
     icon: Type,
-    title: "Word-Synced Subtitles",
+    title: "Subtitle Otomatis Sinkron Kata",
     description:
-      "Word-level timestamps power perfectly timed, animated captions on every clip.",
+      "Transkripsi audio instan menghasilkan subtitle dinamis yang sinkron per kata dengan animasi trendi ala konten kreator populer.",
   },
   {
     icon: Target,
-    title: "Virality Scoring",
+    title: "Prediksi Skor Viralitas AI",
     description:
-      "AI rates hook, engagement, value, and shareability — scored 0 to 100.",
+      "Kecerdasan buatan menganalisis hook, isi konten, dan emosi untuk memberikan skor potensi viral (0 - 100) sebelum Anda unggah.",
   },
   {
     icon: Film,
-    title: "B-Roll Overlays",
+    title: "Overlay B-Roll Otomatis",
     description:
-      "Automatically source and overlay relevant stock footage from Pexels.",
+      "Secara otomatis mendeteksi konteks pembicaraan dan menyisipkan footage video B-Roll relevan dari Pexels untuk menjaga retensi penonton.",
   },
   {
     icon: Sparkles,
-    title: "Caption Templates",
+    title: "Template Subtitle Variatif",
     description:
-      "Multiple animation styles and font presets to match your brand.",
+      "Berbagai gaya animasi teks, preset font modern, dan skema warna menarik untuk disesuaikan dengan identitas brand Anda.",
   },
   {
     icon: MonitorPlay,
-    title: "Platform Export",
+    title: "Preset Ekspor Sekali Klik",
     description:
-      "One-click presets for TikTok, Reels, and Shorts with optimized encoding.",
+      "Optimasi otomatis dan sekali klik untuk langsung mempublikasikan video ke TikTok, Instagram Reels, dan YouTube Shorts.",
   },
 ];
 
 function getPlans() {
+  const publicPlans = getPublicBillingPlans();
   return [
     {
-      name: "Self-Hosted",
+      name: "Gratis / Trial",
       price: "$0",
-      period: "forever",
-      description: "Run on your own infrastructure with full control.",
+      period: "selamanya",
+      description: "Untuk mencoba fitur dan mulai membuat klip pendek.",
       features: [
-        "Face-centered cropping",
-        "Word-synced subtitles",
-        "Virality scoring",
-        "All export presets",
-        "Full source code access",
+        "5 video klip per bulan",
+        "Deteksi wajah otomatis (9:16)",
+        "Subtitle sinkron kata",
+        "Semua preset ekspor standar",
+        "Tanpa kartu kredit",
       ],
-      cta: "View on GitHub",
-      ctaHref: "https://github.com/FujiwaraChoki/supoclip",
+      cta: "Mulai Gratis",
+      ctaHref: "/sign-up",
       highlighted: false,
     },
-    ...getPublicBillingPlans().map((plan) => ({
-      name: plan.name,
-      price: `$${plan.priceMonthly}`,
-      period: "/month",
-      description: plan.description,
-      features: [
-        `${plan.generationLimit} generations per month`,
-        "Everything in Free",
-        "B-Roll overlays",
-        "Caption templates",
-        "Platform export presets",
-        ...(plan.id === "scale" ? ["Priority processing"] : ["Early access to new features"]),
-      ],
-      cta: plan.cta,
-      ctaHref: "",
-      highlighted: plan.highlighted,
-    })),
+    ...publicPlans.map((plan) => {
+      const isPro = plan.id === "pro";
+      return {
+        name: isPro ? "Pro" : "Scale",
+        price: `$${plan.priceMonthly}`,
+        period: "/bulan",
+        description: isPro 
+          ? "Untuk pembuat konten aktif yang ingin hasil maksimal." 
+          : "Untuk tim media, agensi, dan produksi skala besar.",
+        features: isPro ? [
+          `${plan.generationLimit} video klip per bulan`,
+          "Deteksi wajah presisi tinggi",
+          "Semua template subtitle premium",
+          "Overlay B-Roll otomatis",
+          "Ekspor cepat prioritas",
+        ] : [
+          `${plan.generationLimit} video klip per bulan`,
+          "Pemrosesan antrean prioritas ultra cepat",
+          "Semua fitur Pro tanpa batasan",
+          "Akses awal ke fitur baru",
+          "Dukungan prioritas 24/7",
+        ],
+        cta: isPro ? "Pilih Paket Pro" : "Pilih Paket Scale",
+        ctaHref: "/sign-up",
+        highlighted: plan.highlighted,
+      };
+    })
   ];
 }
 
 const STEPS = [
   {
     num: "01",
-    title: "Drop a link or file",
+    title: "Unggah Video / Tempel Link",
     description:
-      "Paste any YouTube URL or drag-and-drop your own video file.",
+      "Tempel tautan video YouTube atau seret file video panjang Anda ke dalam dashboard pendaftaran.",
     icon: Youtube,
   },
   {
     num: "02",
-    title: "AI finds the gold",
+    title: "AI Memproses & Memotong",
     description:
-      "Transcription, virality scoring, and segment detection surface the best moments.",
+      "Kecerdasan buatan menyalin audio, menilai viralitas, mendeteksi wajah, dan membuat klip-klip terbaik secara otomatis.",
     icon: Wand2,
   },
   {
     num: "03",
-    title: "Export & publish",
+    title: "Unduh Klip Viral Anda",
     description:
-      "Get vertical, captioned, face-tracked clips ready for every platform.",
+      "Dapatkan klip video vertikal ber-subtitle menarik yang sudah dipotong rapi dan siap meledak di media sosial.",
     icon: Share2,
   },
 ];
@@ -189,26 +197,28 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-[#030712] text-slate-100 font-sans selection:bg-violet-600 selection:text-white overflow-x-hidden">
       {/* ─── NAV ─── */}
       <nav
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           scrolled
-            ? "bg-background/80 backdrop-blur-xl border-b shadow-sm"
+            ? "bg-[#030712]/80 backdrop-blur-xl border-b border-slate-800/80 shadow-[0_4px_30px_rgba(0,0,0,0.4)]"
             : "bg-transparent"
         }`}
       >
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <Image
-              src="/logo.png"
-              alt="AutoClipper AI"
-              width={24}
-              height={24}
-              className="rounded-lg transition-transform group-hover:scale-105"
-            />
+            <div className="p-1.5 rounded-lg bg-gradient-to-tr from-violet-600 to-cyan-500 shadow-[0_0_15px_rgba(124,58,237,0.5)]">
+              <Image
+                src="/logo.png"
+                alt="AutoClipper AI"
+                width={20}
+                height={20}
+                className="rounded-md transition-transform group-hover:scale-105"
+              />
+            </div>
             <span
-              className="text-lg font-bold tracking-tight"
+              className="text-lg font-bold tracking-tight text-white"
               style={{
                 fontFamily:
                   "var(--font-syne), var(--font-geist-sans), system-ui",
@@ -221,27 +231,21 @@ export default function LandingPage() {
           <div className="hidden md:flex items-center gap-8">
             <a
               href="#how-it-works"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-slate-400 hover:text-white transition-colors"
             >
-              How It Works
+              Cara Kerja
             </a>
             <a
               href="#features"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-slate-400 hover:text-white transition-colors"
             >
-              Features
+              Fitur
             </a>
             <a
               href="#pricing"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-slate-400 hover:text-white transition-colors"
             >
-              Pricing
-            </a>
-            <a
-              href="#open-source"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Open Source
+              Harga
             </a>
           </div>
 
@@ -250,21 +254,22 @@ export default function LandingPage() {
             {authEnabled ? (
               <>
                 <Link href="/sign-in">
-                  <Button variant="ghost" size="sm">
-                    Sign In
+                  <Button variant="ghost" size="sm" className="text-slate-300 hover:text-white hover:bg-slate-800/50">
+                    Masuk
                   </Button>
                 </Link>
                 <Link href="/sign-up">
-                  <Button size="sm">Get Started</Button>
+                  <Button size="sm" className="bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-500 hover:to-cyan-500 text-white border-0 shadow-[0_0_15px_rgba(124,58,237,0.3)]">
+                    Mulai Sekarang
+                  </Button>
                 </Link>
               </>
             ) : (
-              <a href={HOSTED_APP_URL} target="_blank" rel="noopener noreferrer">
-                <Button size="sm">
-                  Open Hosted App
-                  <ExternalLink className="w-3.5 h-3.5" />
+              <Link href="/sign-up">
+                <Button size="sm" className="bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-500 hover:to-cyan-500 text-white border-0">
+                  Mulai Sekarang
                 </Button>
-              </a>
+              </Link>
             )}
           </div>
 
@@ -273,7 +278,7 @@ export default function LandingPage() {
             variant="ghost"
             size="sm"
             onClick={() => setMobileNavOpen(!mobileNavOpen)}
-            className="md:hidden p-2"
+            className="md:hidden p-2 text-slate-300 hover:text-white"
             aria-label="Toggle menu"
           >
             {mobileNavOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -282,56 +287,50 @@ export default function LandingPage() {
 
         {/* Mobile nav dropdown */}
         {mobileNavOpen && (
-          <div className="md:hidden border-t bg-background/95 backdrop-blur-xl">
+          <div className="md:hidden border-t border-slate-800 bg-[#030712]/95 backdrop-blur-xl">
             <div className="max-w-6xl mx-auto px-6 py-4 space-y-1">
               <a
                 href="#how-it-works"
                 onClick={() => setMobileNavOpen(false)}
-                className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                className="block rounded-lg px-3 py-2.5 text-sm text-slate-400 hover:text-white hover:bg-slate-800/30 transition-colors"
               >
-                How It Works
+                Cara Kerja
               </a>
               <a
                 href="#features"
                 onClick={() => setMobileNavOpen(false)}
-                className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                className="block rounded-lg px-3 py-2.5 text-sm text-slate-400 hover:text-white hover:bg-slate-800/30 transition-colors"
               >
-                Features
+                Fitur
               </a>
               <a
                 href="#pricing"
                 onClick={() => setMobileNavOpen(false)}
-                className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                className="block rounded-lg px-3 py-2.5 text-sm text-slate-400 hover:text-white hover:bg-slate-800/30 transition-colors"
               >
-                Pricing
+                Harga
               </a>
-              <a
-                href="#open-source"
-                onClick={() => setMobileNavOpen(false)}
-                className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-              >
-                Open Source
-              </a>
-              <Separator className="my-2" />
+              <Separator className="my-2 border-slate-800" />
               <div className="flex flex-col gap-2 px-3 pt-1">
                 {authEnabled ? (
                   <>
                     <Link href="/sign-in" onClick={() => setMobileNavOpen(false)}>
-                      <Button variant="outline" size="sm" className="w-full">
-                        Sign In
+                      <Button variant="outline" size="sm" className="w-full border-slate-700 text-slate-300 hover:bg-slate-800">
+                        Masuk
                       </Button>
                     </Link>
                     <Link href="/sign-up" onClick={() => setMobileNavOpen(false)}>
-                      <Button size="sm" className="w-full">Get Started</Button>
+                      <Button size="sm" className="w-full bg-gradient-to-r from-violet-600 to-cyan-600 text-white border-0">
+                        Mulai Sekarang
+                      </Button>
                     </Link>
                   </>
                 ) : (
-                  <a href={HOSTED_APP_URL} target="_blank" rel="noopener noreferrer">
-                    <Button size="sm" className="w-full">
-                      Open Hosted App
-                      <ExternalLink className="w-3.5 h-3.5" />
+                  <Link href="/sign-up" onClick={() => setMobileNavOpen(false)}>
+                    <Button size="sm" className="w-full bg-gradient-to-r from-violet-600 to-cyan-600 text-white border-0">
+                      Mulai Sekarang
                     </Button>
-                  </a>
+                  </Link>
                 )}
               </div>
             </div>
@@ -341,9 +340,13 @@ export default function LandingPage() {
 
       {/* ─── HERO ─── */}
       <section className="relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden">
-        {/* Subtle background pattern */}
+        {/* Glow gradients */}
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-violet-600/10 blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-cyan-500/10 blur-[120px] pointer-events-none" />
+
+        {/* Grid pattern */}
         <div
-          className="absolute inset-0 opacity-[0.02]"
+          className="absolute inset-0 opacity-[0.03] pointer-events-none"
           style={{
             backgroundImage:
               "radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)",
@@ -357,83 +360,69 @@ export default function LandingPage() {
             <div>
               <Badge
                 variant="secondary"
-                className="mb-6 gap-2"
+                className="mb-6 gap-2 bg-slate-900 border border-slate-800 text-violet-400 py-1.5 px-3"
                 style={{ animation: "landing-fade-in-up 0.6s ease-out both" }}
               >
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                Open Source & Self-Hostable
+                <span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse" />
+                ✨ AI Video Clipper & Editor Otomatis
               </Badge>
 
               <h1
-                className="text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold leading-[1.08] tracking-tight text-foreground mb-6"
+                className="text-4xl sm:text-5xl lg:text-[3.8rem] font-extrabold leading-[1.08] tracking-tight text-white mb-6"
                 style={{
                   fontFamily:
                     "var(--font-syne), var(--font-geist-sans), system-ui",
                   animation: "landing-fade-in-up 0.6s ease-out 0.1s both",
                 }}
               >
-                From long video
+                Ubah Video Panjang
                 <br />
-                to viral clips
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400">
+                  Menjadi Klip Viral
+                </span>
               </h1>
 
               <p
-                className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-lg mb-10"
+                className="text-base sm:text-lg text-slate-400 leading-relaxed max-w-lg mb-10"
                 style={{
                   animation: "landing-fade-in-up 0.6s ease-out 0.2s both",
                 }}
               >
-                AI-powered clipping that transcribes, scores virality, crops for
-                vertical, adds word-synced captions, and exports platform-ready
-                shorts.
+                AutoClipper AI memotong podcast, talkshow, dan video panjang Anda secara otomatis menggunakan kecerdasan buatan untuk menghasilkan klip Shorts, Reels, dan TikTok dengan engagement tinggi.
               </p>
 
               <div
-                className="flex flex-wrap gap-3 mb-10"
+                className="flex flex-wrap gap-4 mb-10"
                 style={{
                   animation: "landing-fade-in-up 0.6s ease-out 0.3s both",
                 }}
               >
-                {authEnabled ? (
-                  <Link href="/sign-up">
-                    <Button size="lg" className="px-8 h-12 text-sm">
-                      Start Clipping
-                      <ArrowRight className="w-4 h-4" />
-                    </Button>
-                  </Link>
-                ) : (
-                  <a href={HOSTED_APP_URL} target="_blank" rel="noopener noreferrer">
-                    <Button size="lg" className="px-8 h-12 text-sm">
-                      Use Hosted App
-                      <ExternalLink className="w-4 h-4" />
-                    </Button>
-                  </a>
-                )}
-                <a
-                  href="https://github.com/FujiwaraChoki/supoclip"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Button variant="outline" size="lg" className="px-8 h-12 text-sm">
-                    <Github className="w-4 h-4" />
-                    View Source
+                <Link href="/sign-up">
+                  <Button size="lg" className="px-8 h-12 text-sm bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-500 hover:to-cyan-500 border-0 shadow-[0_0_20px_rgba(124,58,237,0.3)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] transition-all duration-300">
+                    Mulai Potong Gratis
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+                <a href="#how-it-works">
+                  <Button variant="outline" size="lg" className="px-8 h-12 text-sm border-slate-700 hover:bg-slate-800 text-slate-300">
+                    Pelajari Cara Kerja
                   </Button>
                 </a>
               </div>
 
               <div
-                className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-muted-foreground"
+                className="flex flex-wrap gap-x-6 gap-y-2 text-xs text-slate-500"
                 style={{
                   animation: "landing-fade-in-up 0.6s ease-out 0.4s both",
                 }}
               >
                 {[
-                  { icon: ScanFace, label: "9:16 Auto-Crop" },
-                  { icon: Type, label: "Word-Synced Captions" },
-                  { icon: Target, label: "Virality Scoring" },
+                  { icon: ScanFace, label: "9:16 Auto-Crop Wajah" },
+                  { icon: Type, label: "Subtitle Sinkron Kata" },
+                  { icon: Target, label: "Penilaian Viralitas AI" },
                 ].map(({ icon: Icon, label }) => (
                   <div key={label} className="flex items-center gap-1.5">
-                    <Icon className="w-3.5 h-3.5" />
+                    <Icon className="w-3.5 h-3.5 text-cyan-400" />
                     {label}
                   </div>
                 ))}
@@ -451,51 +440,51 @@ export default function LandingPage() {
         </div>
 
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 hidden md:block">
-          <ChevronDown className="w-5 h-5 text-muted-foreground/30 animate-bounce" />
+          <ChevronDown className="w-5 h-5 text-slate-600 animate-bounce" />
         </div>
       </section>
 
-      <Separator />
+      <Separator className="bg-slate-850" />
 
       {/* ─── HOW IT WORKS ─── */}
-      <section id="how-it-works" className="py-20 md:py-28 bg-muted/40">
+      <section id="how-it-works" className="py-20 md:py-28 bg-slate-950/40 relative">
         <div className="max-w-6xl mx-auto px-6">
-          <ScrollReveal className="text-center mb-14">
-            <p className="text-xs font-semibold tracking-[0.2em] uppercase text-muted-foreground mb-3">
-              How It Works
+          <ScrollReveal className="text-center mb-16">
+            <p className="text-xs font-semibold tracking-[0.2em] uppercase text-violet-400 mb-3">
+              Cara Kerja
             </p>
             <h2
-              className="text-3xl sm:text-4xl font-bold tracking-tight"
+              className="text-3xl sm:text-4xl font-bold tracking-tight text-white"
               style={{
                 fontFamily:
                   "var(--font-syne), var(--font-geist-sans), system-ui",
               }}
             >
-              Three steps. Zero effort.
+              Tiga Langkah Mudah. Tanpa Ribet.
             </h2>
           </ScrollReveal>
 
           <div className="grid md:grid-cols-3 gap-6">
             {STEPS.map((step, i) => (
               <ScrollReveal key={step.num} delay={i * 0.1}>
-                <Card className="h-full py-0 gap-0 hover:shadow-md transition-shadow duration-300">
+                <Card className="h-full py-0 gap-0 bg-slate-900/30 backdrop-blur-md border border-slate-800/60 hover:border-cyan-500/30 transition-all duration-500 group">
                   <CardContent className="p-8">
                     <span
-                      className="text-6xl font-black leading-none block mb-6 text-muted-foreground/25 select-none"
+                      className="text-6xl font-black leading-none block mb-6 bg-clip-text text-transparent bg-gradient-to-b from-slate-700/40 to-transparent select-none group-hover:from-violet-500/20"
                       style={{ fontFamily: "var(--font-syne), system-ui" }}
                     >
                       {step.num}
                     </span>
-                    <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center mb-5">
-                      <step.icon className="w-5 h-5 text-foreground" />
+                    <div className="w-10 h-10 rounded-xl bg-slate-800/50 border border-slate-700/50 flex items-center justify-center mb-5">
+                      <step.icon className="w-5 h-5 text-cyan-400" />
                     </div>
                     <h3
-                      className="text-lg font-semibold mb-2"
+                      className="text-lg font-semibold mb-2 text-white"
                       style={{ fontFamily: "var(--font-syne), system-ui" }}
                     >
                       {step.title}
                     </h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
+                    <p className="text-sm text-slate-400 leading-relaxed">
                       {step.description}
                     </p>
                   </CardContent>
@@ -506,40 +495,41 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <Separator />
+      <Separator className="bg-slate-850" />
 
       {/* ─── FEATURES ─── */}
-      <section id="features" className="py-20 md:py-28">
+      <section id="features" className="py-20 md:py-28 relative">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] rounded-full bg-violet-600/5 blur-[150px] pointer-events-none" />
+        
         <div className="max-w-6xl mx-auto px-6">
-          <ScrollReveal className="text-center mb-14">
-            <p className="text-xs font-semibold tracking-[0.2em] uppercase text-muted-foreground mb-3">
-              Features
+          <ScrollReveal className="text-center mb-16">
+            <p className="text-xs font-semibold tracking-[0.2em] uppercase text-cyan-400 mb-3">
+              Fitur Utama
             </p>
             <h2
-              className="text-3xl sm:text-4xl font-bold tracking-tight mb-4"
+              className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-white"
               style={{
                 fontFamily:
                   "var(--font-syne), var(--font-geist-sans), system-ui",
               }}
             >
-              Everything you need to go viral
+              Semua Fitur untuk Meledakkan Konten Anda
             </h2>
-            <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              Professional-grade video clipping with AI intelligence at every
-              step of the pipeline.
+            <p className="text-sm text-slate-400 max-w-md mx-auto">
+              Pemrosesan video tingkat profesional dengan kecerdasan buatan di setiap alurnya.
             </p>
           </ScrollReveal>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {FEATURES.map((feature, i) => (
               <ScrollReveal key={feature.title} delay={i * 0.07}>
-                <Card className="h-full py-0 gap-0 hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+                <Card className="h-full py-0 gap-0 bg-slate-900/40 backdrop-blur-md border border-slate-800/80 hover:border-violet-500/50 transition-all duration-500 hover:shadow-[0_0_30px_rgba(124,58,237,0.15)] group">
                   <CardContent className="p-6">
-                    <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center mb-4">
-                      <feature.icon className="w-5 h-5 text-foreground" />
+                    <div className="w-10 h-10 rounded-xl bg-slate-800/50 border border-slate-700/50 flex items-center justify-center mb-4 transition-transform group-hover:scale-110">
+                      <feature.icon className="w-5 h-5 text-violet-400" />
                     </div>
-                    <h3 className="font-semibold mb-2">{feature.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
+                    <h3 className="font-semibold mb-2 text-white text-lg">{feature.title}</h3>
+                    <p className="text-sm text-slate-400 leading-relaxed">
                       {feature.description}
                     </p>
                   </CardContent>
@@ -550,13 +540,13 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <Separator />
+      <Separator className="bg-slate-850" />
 
       {/* ─── PRICING ─── */}
-      <section id="pricing" className="relative py-20 md:py-28 bg-muted/40 overflow-hidden">
-        {/* Decorative background grain */}
+      <section id="pricing" className="relative py-20 md:py-28 bg-slate-950/40 overflow-hidden">
+        {/* Background grid */}
         <div
-          className="absolute inset-0 opacity-[0.03] pointer-events-none"
+          className="absolute inset-0 opacity-[0.02] pointer-events-none"
           style={{
             backgroundImage:
               "radial-gradient(circle at 2px 2px, currentColor 0.5px, transparent 0)",
@@ -566,319 +556,149 @@ export default function LandingPage() {
 
         <div className="relative max-w-5xl mx-auto px-6">
           <ScrollReveal className="text-center mb-16">
-            <p className="text-xs font-semibold tracking-[0.2em] uppercase text-muted-foreground mb-3">
-              Pricing
+            <p className="text-xs font-semibold tracking-[0.2em] uppercase text-violet-400 mb-3">
+              Paket Layanan
             </p>
             <h2
-              className="text-3xl sm:text-4xl font-bold tracking-tight mb-4"
+              className="text-3xl sm:text-4xl font-bold tracking-tight mb-4 text-white"
               style={{
                 fontFamily:
                   "var(--font-syne), var(--font-geist-sans), system-ui",
               }}
             >
-              Simple pricing, no surprises
+              Harga Sederhana. Tanpa Kejutan.
             </h2>
-            <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              Start free. Upgrade when you need more generations.
-              Self-hosters get everything free, always.
+            <p className="text-sm text-slate-400 max-w-md mx-auto">
+              Mulai gratis hari ini. Upgrade kapan saja untuk mendapatkan kuota proses klip yang lebih banyak.
             </p>
           </ScrollReveal>
 
-          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto items-start">
+          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto items-stretch">
             {getPlans().map((plan, i) => (
-              <ScrollReveal key={plan.name} delay={i * 0.12}>
+              <ScrollReveal key={plan.name} delay={i * 0.12} className="flex">
                 <Card
-                  className={`relative py-0 gap-0 transition-all duration-300 hover:shadow-lg ${
+                  className={`relative py-0 gap-0 w-full transition-all duration-300 backdrop-blur-xl border flex flex-col justify-between ${
                     plan.highlighted
-                      ? "bg-primary text-primary-foreground border-primary shadow-xl md:-mt-4 md:mb-4"
-                      : "hover:-translate-y-1"
+                      ? "bg-slate-900/80 border-violet-500 shadow-[0_0_40px_rgba(124,58,237,0.25)] md:-mt-4 md:mb-4 text-slate-100"
+                      : "bg-slate-900/40 border-slate-800/80 hover:border-slate-700/80 text-slate-200 hover:-translate-y-1"
                   }`}
                 >
                   {plan.highlighted && (
                     <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                      <Badge className="bg-foreground text-background border-0 shadow-md gap-1.5 px-3 py-1">
-                        <Zap className="w-3 h-3" />
-                        Most Popular
+                      <Badge className="bg-gradient-to-r from-violet-600 to-cyan-600 text-white border-0 shadow-lg gap-1.5 px-3 py-1">
+                        <Zap className="w-3 h-3 text-yellow-300" />
+                        Paling Populer
                       </Badge>
                     </div>
                   )}
 
-                  <CardContent className="p-8">
-                    <div className="mb-6">
-                      <h3
-                        className="text-lg font-semibold mb-1"
-                        style={{ fontFamily: "var(--font-syne), system-ui" }}
-                      >
-                        {plan.name}
-                      </h3>
-                      <p
-                        className={`text-sm ${
-                          plan.highlighted
-                            ? "text-primary-foreground/70"
-                            : "text-muted-foreground"
-                        }`}
-                      >
-                        {plan.description}
-                      </p>
+                  <CardContent className="p-8 flex-1 flex flex-col justify-between h-full">
+                    <div>
+                      <div className="mb-6">
+                        <h3
+                          className="text-lg font-semibold mb-1 text-white"
+                          style={{ fontFamily: "var(--font-syne), system-ui" }}
+                        >
+                          {plan.name}
+                        </h3>
+                        <p className="text-sm text-slate-400">
+                          {plan.description}
+                        </p>
+                      </div>
+
+                      <div className="flex items-baseline gap-1 mb-8">
+                        <span
+                          className="text-5xl font-extrabold tracking-tight text-white"
+                          style={{ fontFamily: "var(--font-syne), system-ui" }}
+                        >
+                          {plan.price}
+                        </span>
+                        <span className="text-sm text-slate-500">
+                          {plan.period}
+                        </span>
+                      </div>
+
+                      <ul className="space-y-3 mb-8">
+                        {plan.features.map((feature) => (
+                          <li key={feature} className="flex items-start gap-3 text-sm">
+                            <Check className="w-4 h-4 mt-0.5 shrink-0 text-cyan-400" />
+                            <span className="text-slate-300">
+                              {feature}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
 
-                    <div className="flex items-baseline gap-1 mb-8">
-                      <span
-                        className="text-5xl font-extrabold tracking-tight"
-                        style={{ fontFamily: "var(--font-syne), system-ui" }}
-                      >
-                        {plan.price}
-                      </span>
-                      <span
-                        className={`text-sm ${
+                    <Link href={plan.ctaHref}>
+                      <Button
+                        className={`w-full h-11 text-sm ${
                           plan.highlighted
-                            ? "text-primary-foreground/60"
-                            : "text-muted-foreground"
+                            ? "bg-gradient-to-r from-violet-600 to-cyan-600 text-white border-0 hover:from-violet-500 hover:to-cyan-500 shadow-[0_0_20px_rgba(124,58,237,0.2)]"
+                            : "bg-slate-800 text-slate-200 border-slate-700 hover:bg-slate-700 hover:text-white"
                         }`}
+                        variant="default"
+                        size="lg"
                       >
-                        {plan.period}
-                      </span>
-                    </div>
-
-                    <ul className="space-y-3 mb-8">
-                      {plan.features.map((feature) => (
-                        <li key={feature} className="flex items-start gap-3 text-sm">
-                          <Check
-                            className={`w-4 h-4 mt-0.5 shrink-0 ${
-                              plan.highlighted
-                                ? "text-primary-foreground/80"
-                                : "text-muted-foreground"
-                            }`}
-                          />
-                          <span
-                            className={
-                              plan.highlighted
-                                ? "text-primary-foreground/90"
-                                : ""
-                            }
-                          >
-                            {feature}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    {plan.ctaHref ? (
-                      <a
-                        href={plan.ctaHref}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Button
-                          className="w-full h-11 text-sm"
-                          variant="outline"
-                          size="lg"
-                        >
-                          <Github className="w-4 h-4" />
-                          {plan.cta}
-                          <ExternalLink className="w-3.5 h-3.5 opacity-50" />
-                        </Button>
-                      </a>
-                    ) : authEnabled ? (
-                      <Link href="/sign-up">
-                        <Button
-                          className={`w-full h-11 text-sm ${
-                            plan.highlighted
-                              ? "bg-primary-foreground text-primary hover:bg-primary-foreground/90"
-                              : ""
-                          }`}
-                          variant={plan.highlighted ? "secondary" : "default"}
-                          size="lg"
-                        >
-                          {plan.cta}
-                          <ArrowRight className="w-4 h-4" />
-                        </Button>
-                      </Link>
-                    ) : (
-                      <a
-                        href={HOSTED_APP_URL}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Button
-                          className={`w-full h-11 text-sm ${
-                            plan.highlighted
-                              ? "bg-primary-foreground text-primary hover:bg-primary-foreground/90"
-                              : ""
-                          }`}
-                          variant={plan.highlighted ? "secondary" : "default"}
-                          size="lg"
-                        >
-                          Use Hosted App
-                          <ExternalLink className="w-4 h-4" />
-                        </Button>
-                      </a>
-                    )}
+                        {plan.cta}
+                        <ArrowRight className="w-4 h-4 ml-1.5" />
+                      </Button>
+                    </Link>
                   </CardContent>
                 </Card>
               </ScrollReveal>
             ))}
           </div>
-
-          <ScrollReveal delay={0.3}>
-            <p className="text-center text-xs text-muted-foreground mt-10 max-w-md mx-auto">
-              Self-hosting? All features are free and unlimited.{" "}
-              <a
-                href="#open-source"
-                className="underline underline-offset-2 hover:text-foreground transition-colors"
-              >
-                See setup instructions
-              </a>
-              .
-            </p>
-          </ScrollReveal>
         </div>
       </section>
 
-      <Separator />
-
-      {/* ─── OPEN SOURCE ─── */}
-      <section id="open-source" className="py-20 md:py-28 bg-muted/40">
-        <div className="max-w-3xl mx-auto px-6">
-          <ScrollReveal className="text-center mb-10">
-            <Badge variant="outline" className="mb-6 gap-1.5">
-              <Github className="w-3.5 h-3.5" />
-              AGPL-3.0 Licensed
-            </Badge>
-            <h2
-              className="text-3xl sm:text-4xl font-bold tracking-tight mb-4"
-              style={{ fontFamily: "var(--font-syne), system-ui" }}
-            >
-              Built in the open
-            </h2>
-            <p className="text-sm text-muted-foreground max-w-lg mx-auto">
-              Fully open source. Self-host on your infrastructure, contribute
-              features, or fork it and make it yours.
-            </p>
-          </ScrollReveal>
-
-          <ScrollReveal delay={0.1}>
-            <Card className="py-0 gap-0">
-              <CardContent className="p-6 md:p-8">
-                <p className="text-xs font-medium text-muted-foreground mb-3">
-                  Get running in 30 seconds:
-                </p>
-                <div className="bg-primary text-primary-foreground rounded-lg p-5 font-mono text-sm leading-loose overflow-x-auto">
-                  <div>
-                    <span className="opacity-50">$</span>{" "}
-                    git clone{" "}
-                    <span className="opacity-40">
-                      https://github.com/FujiwaraChoki/supoclip
-                    </span>
-                  </div>
-                  <div>
-                    <span className="opacity-50">$</span>{" "}
-                    cd{" "}
-                    <span className="opacity-40">autoclipper</span>
-                  </div>
-                  <div>
-                    <span className="opacity-50">$</span>{" "}
-                    docker-compose up -d
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-3 mt-6">
-                  <a
-                    href="https://github.com/FujiwaraChoki/supoclip"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <Button>
-                      <Github className="w-4 h-4" />
-                      View on GitHub
-                      <ExternalLink className="w-3.5 h-3.5 opacity-50" />
-                    </Button>
-                  </a>
-                  {authEnabled ? (
-                    <Link href="/sign-up">
-                      <Button variant="outline">
-                        Try the hosted version
-                        <ArrowRight className="w-4 h-4" />
-                      </Button>
-                    </Link>
-                  ) : (
-                    <a href={HOSTED_APP_URL} target="_blank" rel="noopener noreferrer">
-                      <Button variant="outline">
-                        Open hosted version
-                        <ExternalLink className="w-4 h-4" />
-                      </Button>
-                    </a>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </ScrollReveal>
-        </div>
-      </section>
-
-      <Separator />
+      <Separator className="bg-slate-850" />
 
       {/* ─── FINAL CTA ─── */}
-      <section className="py-20 md:py-28">
+      <section className="py-20 md:py-28 relative">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40%] h-[40%] rounded-full bg-cyan-500/5 blur-[120px] pointer-events-none" />
+        
         <ScrollReveal className="max-w-2xl mx-auto px-6 text-center">
           <h2
-            className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-6"
+            className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-6 text-white"
             style={{ fontFamily: "var(--font-syne), system-ui" }}
           >
-            Ready to clip?
+            Siap Membuat Video Viral?
           </h2>
-          <p className="text-base text-muted-foreground mb-8">
-            Turn your next video into scroll-stopping shorts. Free, open source,
-            no credit card required.
+          <p className="text-base text-slate-400 mb-8 max-w-md mx-auto">
+            Ubah video panjang Anda menjadi klip pendek yang memikat perhatian penonton dalam hitungan detik. Cepat, otomatis, dan tanpa memerlukan kartu kredit untuk memulai.
           </p>
-          {authEnabled ? (
-            <Link href="/sign-up">
-              <Button size="lg" className="px-10 h-12 text-sm">
-                Get Started Free
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            </Link>
-          ) : (
-            <a href={HOSTED_APP_URL} target="_blank" rel="noopener noreferrer">
-              <Button size="lg" className="px-10 h-12 text-sm">
-                Open Hosted App
-                <ExternalLink className="w-4 h-4" />
-              </Button>
-            </a>
-          )}
+          <Link href="/sign-up">
+            <Button size="lg" className="px-10 h-12 text-sm bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-500 hover:to-cyan-500 text-white border-0 shadow-[0_0_25px_rgba(124,58,237,0.3)]">
+              Mulai Sekarang Gratis
+              <ArrowRight className="w-4 h-4 ml-1.5" />
+            </Button>
+          </Link>
         </ScrollReveal>
       </section>
 
-
       {/* ─── FOOTER ─── */}
-      <footer className="border-t py-8 px-6">
+      <footer className="border-t border-slate-800/80 py-8 px-6 bg-[#02050e]">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Image
-              src="/logo.png"
-              alt="AutoClipper AI"
-              width={24}
-              height={24}
-              className="rounded-md"
-            />
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 rounded bg-slate-900 border border-slate-850">
+              <Image
+                src="/logo.png"
+                alt="AutoClipper AI"
+                width={18}
+                height={18}
+                className="rounded"
+              />
+            </div>
             <span
-              className="text-sm font-semibold"
+              className="text-sm font-semibold text-white"
               style={{ fontFamily: "var(--font-syne), system-ui" }}
             >
               AutoClipper AI
             </span>
           </div>
-          <div className="flex items-center gap-6 text-xs text-muted-foreground">
-            <a
-              href="https://github.com/FujiwaraChoki/supoclip"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-foreground transition-colors"
-            >
-              GitHub
-            </a>
-            <span>AGPL-3.0</span>
-            <span>&copy; {new Date().getFullYear()}</span>
+          <div className="flex items-center gap-6 text-xs text-slate-500">
+            <span>&copy; {new Date().getFullYear()} AutoClipper AI. Hak Cipta Dilindungi. Hubungi kami untuk bantuan.</span>
           </div>
         </div>
       </footer>
@@ -890,16 +710,16 @@ export default function LandingPage() {
 function HeroVisual() {
   return (
     <div className="relative w-full max-w-md">
-      <Card className="py-0 gap-0 overflow-hidden shadow-xl border-border/60">
+      <Card className="py-0 gap-0 overflow-hidden shadow-2xl bg-slate-950/80 backdrop-blur-xl border border-slate-800/80">
         <CardContent className="p-5">
           {/* Wide video frame */}
           <div
-            className="relative w-full rounded-lg overflow-hidden mb-4 bg-muted"
+            className="relative w-full rounded-lg overflow-hidden mb-4 bg-slate-900 border border-slate-800"
             style={{ aspectRatio: "16/9" }}
           >
             {/* Gradient simulating video content */}
             <div
-              className="absolute inset-0 bg-gradient-to-br from-stone-200 via-stone-100 to-stone-200"
+              className="absolute inset-0 bg-gradient-to-br from-violet-950/20 via-slate-900 to-cyan-950/20"
             />
 
             {/* Subtle grid overlay */}
@@ -914,16 +734,16 @@ function HeroVisual() {
 
             {/* Play button */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-12 h-12 rounded-full bg-background/80 backdrop-blur-sm flex items-center justify-center shadow-lg">
-                <Play className="w-5 h-5 text-foreground ml-0.5" />
+              <div className="w-12 h-12 rounded-full bg-violet-600/90 hover:bg-violet-500 backdrop-blur-sm flex items-center justify-center shadow-lg transition-transform hover:scale-105 cursor-pointer">
+                <Play className="w-5 h-5 text-white fill-white ml-0.5" />
               </div>
             </div>
 
             {/* Scanning line */}
             <div
-              className="absolute top-0 bottom-0 w-0.5 bg-foreground/50 landing-scan-line"
+              className="absolute top-0 bottom-0 w-0.5 bg-cyan-400 landing-scan-line"
               style={{
-                boxShadow: "0 0 12px rgba(0,0,0,0.15)",
+                boxShadow: "0 0 15px #06b6d4, 0 0 30px #06b6d4",
                 animation: "landing-scan-line 3s ease-in-out infinite",
               }}
             />
@@ -936,25 +756,26 @@ function HeroVisual() {
             ].map((clip, i) => (
               <div
                 key={i}
-                className="absolute top-[8%] bottom-[8%] w-[22%] rounded-md border-2 bg-foreground/[0.03]"
+                className="absolute top-[8%] bottom-[8%] w-[22%] rounded-md border bg-violet-500/[0.03]"
                 style={{
                   left: clip.left,
+                  borderColor: "rgba(139, 92, 246, 0.4)",
                   animation: `landing-clip-pulse 2.5s ease-in-out ${clip.delay}s infinite`,
                 }}
               >
-                <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] px-1.5 py-0 h-5">
+                <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] px-1.5 py-0 h-5 bg-gradient-to-r from-violet-600 to-cyan-600 text-white border-0">
                   {clip.score}%
                 </Badge>
               </div>
             ))}
 
             {/* Timeline bar */}
-            <div className="absolute bottom-2 left-3 right-3 h-1 rounded-full overflow-hidden bg-foreground/10">
-              <div className="h-full w-[65%] rounded-full bg-foreground/20" />
+            <div className="absolute bottom-2 left-3 right-3 h-1 rounded-full overflow-hidden bg-slate-800">
+              <div className="h-full w-[65%] rounded-full bg-gradient-to-r from-violet-500 to-cyan-500" />
               {[15, 42, 73].map((pos, i) => (
                 <div
                   key={i}
-                  className="absolute top-1/2 -translate-y-1/2 w-1 h-2.5 rounded-full bg-foreground/40"
+                  className="absolute top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-white shadow"
                   style={{ left: `${pos}%` }}
                 />
               ))}
@@ -963,52 +784,56 @@ function HeroVisual() {
 
           {/* Scissors divider */}
           <div className="flex items-center gap-2 mb-4">
-            <div className="flex-1 h-px bg-border" />
-            <Scissors className="w-4 h-4 text-muted-foreground rotate-90" />
-            <div className="flex-1 h-px bg-border" />
+            <div className="flex-1 h-px bg-slate-800" />
+            <Scissors className="w-4 h-4 text-slate-500 rotate-90" />
+            <div className="flex-1 h-px bg-slate-800" />
           </div>
 
           {/* Extracted vertical clips */}
           <div className="flex gap-2.5 justify-center">
             {[
               {
-                bg: "linear-gradient(135deg, #e8e5e0, #d6d3cd)",
+                bg: "linear-gradient(135deg, #1e1b4b, #0f172a)",
+                borderColor: "rgba(139, 92, 246, 0.3)",
                 score: 92,
-                label: "Hook moment",
+                label: "Momen Hook",
               },
               {
-                bg: "linear-gradient(135deg, #dfe0e4, #cdd0d6)",
+                bg: "linear-gradient(135deg, #063c46, #0f172a)",
+                borderColor: "rgba(6, 182, 212, 0.3)",
                 score: 87,
-                label: "Key insight",
+                label: "Poin Kunci",
               },
               {
-                bg: "linear-gradient(135deg, #e4e2df, #d3d0cb)",
+                bg: "linear-gradient(135deg, #1e1b4b, #0f172a)",
+                borderColor: "rgba(139, 92, 246, 0.3)",
                 score: 78,
-                label: "CTA close",
+                label: "CTA Akhir",
               },
             ].map((clip, i) => (
               <div
                 key={i}
-                className="relative flex-1 rounded-lg overflow-hidden border shadow-sm"
+                className="relative flex-1 rounded-lg overflow-hidden border shadow-md"
                 style={{
                   aspectRatio: "9/16",
                   background: clip.bg,
+                  borderColor: clip.borderColor,
                   animation: `landing-float ${2.5 + i * 0.3}s ease-in-out ${
                     i * 0.2
                   }s infinite`,
                 }}
               >
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-6 h-6 rounded-full bg-background/70 flex items-center justify-center shadow-sm">
-                    <Play className="w-3 h-3 text-foreground ml-px" />
+                  <div className="w-7 h-7 rounded-full bg-slate-900/80 flex items-center justify-center shadow-sm border border-slate-800">
+                    <Play className="w-3.5 h-3.5 text-cyan-400 fill-cyan-400 ml-px" />
                   </div>
                 </div>
                 <div className="absolute bottom-1.5 left-1 right-1">
-                  <div className="text-[7px] text-center font-medium py-0.5 px-1 rounded bg-primary text-primary-foreground">
+                  <div className="text-[7px] text-center font-medium py-0.5 px-1 rounded bg-slate-950/80 border border-slate-800 text-slate-300">
                     {clip.label}
                   </div>
                 </div>
-                <Badge className="absolute top-1 right-1 text-[8px] px-1 py-0 h-4">
+                <Badge className="absolute top-1 right-1 text-[8px] px-1 py-0 h-4 bg-violet-600/90 text-white border-0">
                   {clip.score}
                 </Badge>
               </div>
@@ -1018,8 +843,8 @@ function HeroVisual() {
       </Card>
 
       {/* Decorative blur spots */}
-      <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-muted/80 blur-3xl -z-10" />
-      <div className="absolute -bottom-8 -left-8 w-24 h-24 rounded-full bg-muted/60 blur-2xl -z-10" />
+      <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full bg-violet-500/10 blur-3xl -z-10 animate-pulse" />
+      <div className="absolute -bottom-8 -left-8 w-24 h-24 rounded-full bg-cyan-500/10 blur-2xl -z-10 animate-pulse" />
     </div>
   );
 }

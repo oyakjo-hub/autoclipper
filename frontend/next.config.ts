@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  serverExternalPackages: ["better-auth"],
   // Skip ESLint during builds (generated Prisma code causes lint errors)
   eslint: {
     ignoreDuringBuilds: true,

@@ -131,9 +131,15 @@ class WorkerSettings:
     functions = [process_video_task]
     queue_name = "supoclip_tasks"
 
+    is_local = config.redis_host in {"localhost", "127.0.0.1", "redis"}
+
     # Redis settings from environment
     redis_settings = RedisSettings(
-        host=config.redis_host, port=config.redis_port, password=config.redis_password, database=0
+        host=config.redis_host,
+        port=config.redis_port,
+        password=config.redis_password,
+        database=0,
+        ssl=not is_local,
     )
 
     # Retry settings

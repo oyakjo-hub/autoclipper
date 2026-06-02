@@ -26,22 +26,30 @@ COPY pyproject.toml uv.lock* ./
 RUN uv venv .venv && uv sync
 
 # Force update yt-dlp to the absolute latest version to handle YouTube API changes
-# Also install from git to get the very latest commits
 RUN uv pip install --upgrade --force-reinstall yt-dlp
 RUN uv pip install --upgrade --force-reinstall "yt-dlp[default]"
 
-# Copy source code
+# Copy source code and startup scripts
 COPY src/ ./src/
-
-# Copy fonts and transitions directories
 COPY fonts/ ./fonts/
 COPY transitions/ ./transitions/
+COPY start_hf.sh ./
+RUN chmod +x start_hf.sh
 
 # Create necessary directories for video processing
 RUN mkdir -p /app/uploads /app/clips /app/logs /tmp
 
-# Expose the port FastAPI will run on
-EXPOSE 8000
+# Configure for Hugging Face Spaces (runs as non-root user UID 1000)
+RUN useradd -m -u 1000 user && \
+    chown -R 1000:1000 /app /tmp
 
-# Activate virtual environment and start the application
-CMD [".venv/bin/uvicorn", "src.main_refactored:app", "--host", "0.0.0.0", "--port", "8000"]
+# Switch to the non-root user
+USER user
+ENV HOME=/home/user
+ENV PATH="/app/.venv/bin:${PATH}"
+
+# Expose Hugging Face Space port (7860)
+EXPOSE 7860
+
+# Start FastAPI and the background worker together
+CMD ["./start_hf.sh"]

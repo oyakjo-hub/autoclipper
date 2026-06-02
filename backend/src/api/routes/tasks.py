@@ -32,6 +32,17 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 
+def _get_redis_client(config) -> redis.Redis:
+    is_local = config.redis_host in {"localhost", "127.0.0.1", "redis"}
+    return redis.Redis(
+        host=config.redis_host,
+        port=config.redis_port,
+        password=config.redis_password,
+        decode_responses=True,
+        ssl=not is_local,
+    )
+
+
 def _normalize_font_size(value: Any, default: int = 24) -> int:
     try:
         parsed = int(value)
@@ -60,12 +71,7 @@ def _get_user_id_from_headers(request: Request) -> str:
 
 async def _load_task_source_metadata(task_id: str) -> Dict[str, Any]:
     runtime_config = get_config()
-    redis_client = redis.Redis(
-        host=runtime_config.redis_host,
-        port=runtime_config.redis_port,
-        password=runtime_config.redis_password,
-        decode_responses=True,
-    )
+    redis_client = _get_redis_client(runtime_config)
     try:
         payload = await redis_client.get(f"task_source:{task_id}")
     except Exception as exc:
@@ -85,12 +91,7 @@ async def _load_task_source_metadata(task_id: str) -> Dict[str, Any]:
 
 async def _save_task_source_metadata(task_id: str, payload: Dict[str, Any]) -> None:
     runtime_config = get_config()
-    redis_client = redis.Redis(
-        host=runtime_config.redis_host,
-        port=runtime_config.redis_port,
-        password=runtime_config.redis_password,
-        decode_responses=True,
-    )
+    redis_client = _get_redis_client(runtime_config)
     try:
         await redis_client.set(
             f"task_source:{task_id}",
@@ -393,12 +394,7 @@ async def get_task_progress_sse(task_id: str, request: Request):
 
         # Connect to Redis for real-time updates
         runtime_config = get_config()
-        redis_client = redis.Redis(
-            host=runtime_config.redis_host,
-            port=runtime_config.redis_port,
-            password=runtime_config.redis_password,
-            decode_responses=True,
-        )
+        redis_client = _get_redis_client(runtime_config)
 
         try:
             # Subscribe to progress updates
@@ -808,12 +804,7 @@ async def cancel_task(
             return {"message": f"Task already in terminal state: {task.get('status')}"}
 
         runtime_config = get_config()
-        redis_client = redis.Redis(
-            host=runtime_config.redis_host,
-            port=runtime_config.redis_port,
-            password=runtime_config.redis_password,
-            decode_responses=True,
-        )
+        redis_client = _get_redis_client(runtime_config)
         try:
             await redis_client.setex(f"task_cancel:{task_id}", 3600, "1")
         finally:
@@ -893,12 +884,7 @@ async def resume_task(
             raise HTTPException(status_code=400, detail="Task source URL is missing")
 
         runtime_config = get_config()
-        redis_client = redis.Redis(
-            host=runtime_config.redis_host,
-            port=runtime_config.redis_port,
-            password=runtime_config.redis_password,
-            decode_responses=True,
-        )
+        redis_client = _get_redis_client(runtime_config)
         try:
             await redis_client.delete(f"task_cancel:{task_id}")
         finally:
@@ -945,12 +931,7 @@ async def resume_task(
 async def list_dead_letter_tasks():
     """List tasks that exhausted retries and landed in dead-letter store."""
     runtime_config = get_config()
-    redis_client = redis.Redis(
-        host=runtime_config.redis_host,
-        port=runtime_config.redis_port,
-        password=runtime_config.redis_password,
-        decode_responses=True,
-    )
+    redis_client = _get_redis_client(runtime_config)
     try:
         ids_result = redis_client.smembers("tasks:dead_letter")
         ids = await ids_result if inspect.isawaitable(ids_result) else ids_result

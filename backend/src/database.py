@@ -42,7 +42,12 @@ def _build_engine(database_url: str) -> AsyncEngine:
 
 
 def get_database_url() -> str:
-    return _database_url_override or os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL)
+    url = _database_url_override or os.getenv("DATABASE_URL", DEFAULT_DATABASE_URL)
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql+asyncpg://", 1)
+    elif url.startswith("postgresql://"):
+        url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+    return url
 
 
 def configure_database(

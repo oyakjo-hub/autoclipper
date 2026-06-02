@@ -56,32 +56,91 @@ export const auth = betterAuth({
 
 let schemaMigrated = false;
 
+async function runPrismaMigrate() {
+  const { exec } = await import("child_process");
+  const { promisify } = await import("util");
+  const path = await import("path");
+  const fs = await import("fs");
+  const execAsync = promisify(exec);
+
+  // Find schema.prisma path
+  let schemaPath = "./prisma/schema.prisma";
+  if (!fs.existsSync(schemaPath)) {
+    schemaPath = "./frontend/prisma/schema.prisma";
+  }
+  if (!fs.existsSync(schemaPath)) {
+    schemaPath = path.join(process.cwd(), "prisma/schema.prisma");
+    if (!fs.existsSync(schemaPath)) {
+      schemaPath = path.join(process.cwd(), "frontend/prisma/schema.prisma");
+    }
+  }
+
+  if (!fs.existsSync(schemaPath)) {
+    throw new Error(`schema.prisma not found at ${schemaPath} or standard paths`);
+  }
+
+  console.log(`[Db Migration] Running prisma migrate deploy with schema path: ${schemaPath}`);
+  const { stdout, stderr } = await execAsync(`npx prisma migrate deploy --schema=${schemaPath}`);
+  console.log("[Db Migration] Prisma Migrate Output:", stdout);
+  if (stderr) {
+    console.warn("[Db Migration] Prisma Migrate Warnings:", stderr);
+  }
+}
+
 async function ensureDatabaseSchema() {
   if (schemaMigrated) return;
   try {
-    console.log("[Db Migration] Running auto-migration for missing columns...");
+    console.log("[Db Migration] Checking if 'users' table exists...");
     
-    // Add missing columns to users table
-    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS first_name VARCHAR(100);`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name VARCHAR(100);`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255);`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS default_font_family VARCHAR(100) DEFAULT 'TikTokSans-Regular';`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS default_font_size INTEGER DEFAULT 24;`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS default_font_color VARCHAR(7) DEFAULT '#FFFFFF';`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS notify_on_completion BOOLEAN DEFAULT true;`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false;`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS plan VARCHAR(20) DEFAULT 'free';`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_status VARCHAR(20) DEFAULT 'inactive';`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_customer_id VARCHAR(255);`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_subscription_id VARCHAR(255);`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS billing_period_start TIMESTAMP WITH TIME ZONE;`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS billing_period_end TIMESTAMP WITH TIME ZONE;`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMP WITH TIME ZONE;`);
+    // Check if 'users' table exists
+    const result = await prisma.$queryRawUnsafe<{ exists: boolean }[]>(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'users'
+      );
+    `);
+    
+    const usersTableExists = result?.[0]?.exists;
+    console.log(`[Db Migration] 'users' table exists: ${usersTableExists}`);
+    
+    if (!usersTableExists) {
+      console.log("[Db Migration] Database is empty or 'users' table is missing. Running prisma migrate deploy...");
+      await runPrismaMigrate();
+    } else {
+      console.log("[Db Migration] Running auto-migration for missing columns on 'users' table...");
+      // Add missing columns to users table
+      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS first_name VARCHAR(100);`);
+      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS last_name VARCHAR(100);`);
+      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255);`);
+      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS default_font_family VARCHAR(100) DEFAULT 'TikTokSans-Regular';`);
+      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS default_font_size INTEGER DEFAULT 24;`);
+      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS default_font_color VARCHAR(7) DEFAULT '#FFFFFF';`);
+      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS notify_on_completion BOOLEAN DEFAULT true;`);
+      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false;`);
+      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS plan VARCHAR(20) DEFAULT 'free';`);
+      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS subscription_status VARCHAR(20) DEFAULT 'inactive';`);
+      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS stripe_customer_id VARCHAR(255);`);
+      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS stripe_subscription_id VARCHAR(255);`);
+      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS billing_period_start TIMESTAMP WITH TIME ZONE;`);
+      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS billing_period_end TIMESTAMP WITH TIME ZONE;`);
+      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMP WITH TIME ZONE;`);
+      console.log("[Db Migration] Auto-migration columns verified.");
+    }
     
     schemaMigrated = true;
     console.log("[Db Migration] Auto-migration completed successfully.");
   } catch (error) {
-    console.error("[Db Migration] Error running auto-migration:", error);
+    console.error("[Db Migration] Error during raw SQL schema validation:", error);
+    try {
+      console.log("[Db Migration] Fallback: Running prisma migrate deploy...");
+      await runPrismaMigrate();
+      schemaMigrated = true;
+      console.log("[Db Migration] Fallback prisma migrate deploy completed successfully.");
+    } catch (fallbackError) {
+      console.error("[Db Migration] Fallback prisma migrate deploy failed:", fallbackError);
+      throw new Error(`Database auto-migration failed: ${fallbackError instanceof Error ? fallbackError.message : String(fallbackError)}`);
+    }
   }
 }
 

@@ -228,7 +228,7 @@ export default async function AdminPage({
     app_settings: { model: "appSetting", displayName: "App Settings" },
   };
 
-  let dbRows: any[] = [];
+  let dbRows: Record<string, unknown>[] = [];
   let dbTotalCount = 0;
   const dbPage = parseInt(selectedPage || "1", 10) || 1;
   const dbLimit = 15;
@@ -236,22 +236,27 @@ export default async function AdminPage({
 
   if (selectedTable && tableMapping[selectedTable]) {
     const { model } = tableMapping[selectedTable];
-    try {
-      // @ts-ignore
-      dbRows = await prisma[model].findMany({
-        skip: dbSkip,
-        take: dbLimit,
-        orderBy:
-          selectedTable === "users" || selectedTable === "sessions" || selectedTable === "accounts" || selectedTable === "verifications"
-            ? { createdAt: "desc" }
-            : selectedTable === "tasks" || selectedTable === "sources" || selectedTable === "stripe_webhook_events" || selectedTable === "app_settings"
-            ? { created_at: "desc" }
-            : undefined,
-      });
-      // @ts-ignore
-      dbTotalCount = await prisma[model].count();
-    } catch (e) {
-      console.error(`Error querying database table ${selectedTable}:`, e);
+    const prismaModel = (prisma as unknown as Record<string, {
+      findMany: (args: { skip: number; take: number; orderBy?: unknown }) => Promise<Record<string, unknown>[]>;
+      count: () => Promise<number>;
+    }>)[model];
+
+    if (prismaModel) {
+      try {
+        dbRows = await prismaModel.findMany({
+          skip: dbSkip,
+          take: dbLimit,
+          orderBy:
+            selectedTable === "users" || selectedTable === "sessions" || selectedTable === "accounts" || selectedTable === "verifications"
+              ? { createdAt: "desc" }
+              : selectedTable === "tasks" || selectedTable === "sources" || selectedTable === "stripe_webhook_events" || selectedTable === "app_settings"
+              ? { created_at: "desc" }
+              : undefined,
+        });
+        dbTotalCount = await prismaModel.count();
+      } catch (e) {
+        console.error(`Error querying database table ${selectedTable}:`, e);
+      }
     }
   }
 
@@ -617,10 +622,10 @@ export default async function AdminPage({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200 bg-white">
-                    {dbRows.map((row: any, rowIndex) => {
+                    {dbRows.map((row, rowIndex) => {
                       const rowKeys = Object.keys(row);
                       return (
-                        <tr key={row.id || rowIndex} className="hover:bg-gray-50/50">
+                        <tr key={(row["id"] as string | undefined) || rowIndex} className="hover:bg-gray-50/50">
                           {rowKeys.slice(0, 5).map((colName) => {
                             const val = row[colName];
                             let cellText = "";

@@ -54,4 +54,52 @@ export const auth = betterAuth({
   ],
 });
 
+// Ensure default admin user exists on startup
+async function ensureAdminUser() {
+  if (process.env.NEXT_PHASE === "phase-production-build") {
+    return;
+  }
+  try {
+    const adminEmail = "oyakjo@gmail.com";
+    const user = await prisma.user.findUnique({
+      where: { email: adminEmail },
+    });
+
+    if (!user) {
+      console.log(`[Admin Seed] Creating default admin user: ${adminEmail}`);
+      await auth.api.signUpEmail({
+        body: {
+          email: adminEmail,
+          password: "@Arsyamarhan2922",
+          name: "Admin Oyak",
+        },
+      });
+      
+      await prisma.user.update({
+        where: { email: adminEmail },
+        data: {
+          is_admin: true,
+          plan: "scale",
+        },
+      });
+      console.log(`[Admin Seed] Admin user ${adminEmail} created and promoted to admin.`);
+    } else if (!user.is_admin) {
+      console.log(`[Admin Seed] Promoting existing user ${adminEmail} to admin.`);
+      await prisma.user.update({
+        where: { email: adminEmail },
+        data: {
+          is_admin: true,
+          plan: "scale",
+        },
+      });
+    }
+  } catch (error) {
+    console.error("[Admin Seed] Error ensuring default admin user:", error);
+  }
+}
+
+if (typeof window === "undefined") {
+  ensureAdminUser();
+}
+
 export type Session = typeof auth.$Infer.Session;

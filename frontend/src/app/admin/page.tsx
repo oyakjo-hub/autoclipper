@@ -25,7 +25,7 @@ function statusBadgeClass(status: string) {
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ user?: string }>;
+  searchParams: Promise<{ user?: string; table?: string; page?: string }>;
 }) {
   const session = await auth.api.getSession({ headers: await headers() });
 
@@ -59,7 +59,7 @@ export default async function AdminPage({
     return <AdminUnlockForm />;
   }
 
-  const { user: selectedUserId } = await searchParams;
+  const { user: selectedUserId, table: selectedTable, page: selectedPage } = await searchParams;
   const adminUserId = session.user.id;
 
   async function loadRuntimeSettings(): Promise<{
@@ -195,6 +195,64 @@ export default async function AdminPage({
         })
       : Promise.resolve([]),
   ]);
+
+  const [
+    dbUsersCount,
+    dbTasksCount,
+    dbSourcesCount,
+    dbSessionsCount,
+    dbAccountsCount,
+    dbVerificationsCount,
+    dbStripeWebhooksCount,
+    dbAppSettingsCount
+  ] = await Promise.all([
+    prisma.user.count(),
+    prisma.task.count(),
+    prisma.source.count(),
+    prisma.session.count(),
+    prisma.account.count(),
+    prisma.verification.count(),
+    prisma.stripeWebhookEvent.count(),
+    prisma.appSetting.count(),
+  ]);
+
+  const tableMapping: Record<string, { model: string; displayName: string }> = {
+    users: { model: "user", displayName: "Users (Pengguna)" },
+    tasks: { model: "task", displayName: "Tasks (Tugas Pemrosesan)" },
+    sources: { model: "source", displayName: "Sources (Sumber Video)" },
+    sessions: { model: "session", displayName: "Sessions (Sesi Login)" },
+    accounts: { model: "account", displayName: "Accounts (Kredensial)" },
+    verifications: { model: "verification", displayName: "Verifications" },
+    stripe_webhook_events: { model: "stripeWebhookEvent", displayName: "Stripe Webhooks" },
+    app_settings: { model: "appSetting", displayName: "App Settings" },
+  };
+
+  let dbRows: any[] = [];
+  let dbTotalCount = 0;
+  const dbPage = parseInt(selectedPage || "1", 10) || 1;
+  const dbLimit = 15;
+  const dbSkip = (dbPage - 1) * dbLimit;
+
+  if (selectedTable && tableMapping[selectedTable]) {
+    const { model } = tableMapping[selectedTable];
+    try {
+      // @ts-ignore
+      dbRows = await prisma[model].findMany({
+        skip: dbSkip,
+        take: dbLimit,
+        orderBy:
+          selectedTable === "users" || selectedTable === "sessions" || selectedTable === "accounts" || selectedTable === "verifications"
+            ? { createdAt: "desc" }
+            : selectedTable === "tasks" || selectedTable === "sources" || selectedTable === "stripe_webhook_events" || selectedTable === "app_settings"
+            ? { created_at: "desc" }
+            : undefined,
+      });
+      // @ts-ignore
+      dbTotalCount = await prisma[model].count();
+    } catch (e) {
+      console.error(`Error querying database table ${selectedTable}:`, e);
+    }
+  }
 
   const generationCountByUser = new Map(tasksByUser.map((item) => [item.user_id, item._count._all]));
 
@@ -432,6 +490,178 @@ export default async function AdminPage({
                 )}
               </tbody>
             </table>
+          </div>
+        )}
+      </section>
+
+      {/* Live Database Explorer Section */}
+      <section className="mt-8 rounded-lg border border-gray-200 bg-white">
+        <div className="border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-medium">Live Database Explorer</h2>
+            <p className="text-sm text-gray-600">Jelajahi dan pantau tabel database langsung untuk kontrol penuh.</p>
+          </div>
+          {selectedTable && (
+            <Link href="/admin" className="text-sm font-medium text-black underline">
+              Tutup Tabel
+            </Link>
+          )}
+        </div>
+
+        {/* Grid of Tables */}
+        <div className="p-4 bg-gray-50 border-b border-gray-200">
+          <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">Pilih Tabel untuk Dilihat:</p>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              { key: "users", name: "Users", count: dbUsersCount },
+              { key: "tasks", name: "Tasks", count: dbTasksCount },
+              { key: "sources", name: "Sources", count: dbSourcesCount },
+              { key: "sessions", name: "Sessions", count: dbSessionsCount },
+              { key: "accounts", name: "Accounts", count: dbAccountsCount },
+              { key: "verifications", name: "Verifications", count: dbVerificationsCount },
+              { key: "stripe_webhook_events", name: "Stripe Webhooks", count: dbStripeWebhooksCount },
+              { key: "app_settings", name: "App Settings", count: dbAppSettingsCount },
+            ].map((tbl) => {
+              const isActive = selectedTable === tbl.key;
+              return (
+                <Link
+                  key={tbl.key}
+                  href={`/admin?table=${tbl.key}`}
+                  className={`flex flex-col p-3 rounded-lg border text-left transition-all ${
+                    isActive
+                      ? "bg-black border-black text-white shadow-md"
+                      : "bg-white border-gray-200 text-gray-800 hover:border-gray-400"
+                  }`}
+                >
+                  <span className="text-sm font-medium truncate">{tbl.name}</span>
+                  <span className={`text-xs mt-1 ${isActive ? "text-gray-300" : "text-gray-500"}`}>
+                    {tbl.count} baris
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Selected Table Data View */}
+        {!selectedTable ? (
+          <div className="px-4 py-8 text-center text-sm text-gray-500">
+            Pilih salah satu tabel di atas untuk melihat isi data database secara langsung.
+          </div>
+        ) : (
+          <div>
+            <div className="px-4 py-3 bg-gray-100/50 text-sm border-b border-gray-200 flex justify-between items-center">
+              <div>
+                Menampilkan tabel: <span className="font-bold text-black">{tableMapping[selectedTable]?.displayName}</span>
+                <span className="text-gray-500 ml-2">({dbTotalCount} total baris)</span>
+              </div>
+              
+              {/* Pagination controls */}
+              {dbTotalCount > dbLimit && (
+                <div className="flex items-center gap-2">
+                  {dbPage > 1 ? (
+                    <Link
+                      href={`/admin?table=${selectedTable}&page=${dbPage - 1}`}
+                      className="px-2 py-1 text-xs bg-white border rounded hover:bg-gray-50 text-gray-700"
+                    >
+                      Sebelumnya
+                    </Link>
+                  ) : (
+                    <span className="px-2 py-1 text-xs border rounded text-gray-300 bg-gray-50 select-none">
+                      Sebelumnya
+                    </span>
+                  )}
+                  <span className="text-xs text-gray-600">
+                    Halaman {dbPage} dari {Math.ceil(dbTotalCount / dbLimit)}
+                  </span>
+                  {dbPage * dbLimit < dbTotalCount ? (
+                    <Link
+                      href={`/admin?table=${selectedTable}&page=${dbPage + 1}`}
+                      className="px-2 py-1 text-xs bg-white border rounded hover:bg-gray-50 text-gray-700"
+                    >
+                      Berikutnya
+                    </Link>
+                  ) : (
+                    <span className="px-2 py-1 text-xs border rounded text-gray-300 bg-gray-50 select-none">
+                      Berikutnya
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {dbRows.length === 0 ? (
+              <div className="px-4 py-8 text-center text-sm text-gray-500">
+                Tabel ini kosong atau data tidak dapat dimuat.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      {dbRows.length > 0 &&
+                        Object.keys(dbRows[0])
+                          .slice(0, 5)
+                          .map((colName) => (
+                            <th
+                              key={colName}
+                              className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 font-mono"
+                            >
+                              {colName}
+                            </th>
+                          ))}
+                      <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                        Aksi
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 bg-white">
+                    {dbRows.map((row: any, rowIndex) => {
+                      const rowKeys = Object.keys(row);
+                      return (
+                        <tr key={row.id || rowIndex} className="hover:bg-gray-50/50">
+                          {rowKeys.slice(0, 5).map((colName) => {
+                            const val = row[colName];
+                            let cellText = "";
+                            if (val instanceof Date) {
+                              cellText = val.toLocaleString();
+                            } else if (typeof val === "object" && val !== null) {
+                              cellText = JSON.stringify(val);
+                            } else {
+                              cellText = String(val ?? "-");
+                            }
+
+                            // Truncate long value
+                            if (cellText.length > 55) {
+                              cellText = cellText.substring(0, 52) + "...";
+                            }
+
+                            return (
+                              <td
+                                key={colName}
+                                className="px-4 py-2 text-xs font-mono text-gray-800 break-all"
+                              >
+                                {cellText}
+                              </td>
+                            );
+                          })}
+                          <td className="px-4 py-2 text-right">
+                            <details className="inline-block text-left">
+                              <summary className="text-xs text-indigo-600 hover:text-indigo-900 cursor-pointer font-medium underline select-none">
+                                Lihat JSON
+                              </summary>
+                              <div className="mt-2 p-3 bg-gray-50 border border-gray-200 rounded-md text-xs font-mono text-left max-w-xl overflow-x-auto whitespace-pre-wrap text-gray-800 leading-normal">
+                                {JSON.stringify(row, null, 2)}
+                              </div>
+                            </details>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
       </section>

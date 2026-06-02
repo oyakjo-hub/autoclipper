@@ -54,11 +54,46 @@ export const auth = betterAuth({
   ],
 });
 
+let schemaMigrated = false;
+
+async function ensureDatabaseSchema() {
+  if (schemaMigrated) return;
+  try {
+    console.log("[Db Migration] Running auto-migration for missing columns...");
+    
+    // Add missing columns to users table
+    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS first_name VARCHAR(100);`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_name VARCHAR(100);`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255);`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS default_font_family VARCHAR(100) DEFAULT 'TikTokSans-Regular';`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS default_font_size INTEGER DEFAULT 24;`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS default_font_color VARCHAR(7) DEFAULT '#FFFFFF';`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS notify_on_completion BOOLEAN DEFAULT true;`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false;`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS plan VARCHAR(20) DEFAULT 'free';`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_status VARCHAR(20) DEFAULT 'inactive';`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_customer_id VARCHAR(255);`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_subscription_id VARCHAR(255);`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS billing_period_start TIMESTAMP WITH TIME ZONE;`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS billing_period_end TIMESTAMP WITH TIME ZONE;`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMP WITH TIME ZONE;`);
+    
+    schemaMigrated = true;
+    console.log("[Db Migration] Auto-migration completed successfully.");
+  } catch (error) {
+    console.error("[Db Migration] Error running auto-migration:", error);
+  }
+}
+
 // Ensure default admin user exists on startup
 export async function ensureAdminUser() {
   if (process.env.NEXT_PHASE === "phase-production-build") {
     return;
   }
+  
+  // Run schema migration first before executing any Prisma query on users table
+  await ensureDatabaseSchema();
+
   try {
     const adminEmail = "oyakjo@gmail.com";
     const user = await prisma.user.findUnique({

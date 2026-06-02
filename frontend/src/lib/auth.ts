@@ -55,7 +55,7 @@ export const auth = betterAuth({
 });
 
 // Ensure default admin user exists on startup
-async function ensureAdminUser() {
+export async function ensureAdminUser() {
   if (process.env.NEXT_PHASE === "phase-production-build") {
     return;
   }
@@ -125,10 +125,6 @@ async function ensureAdminUser() {
   } catch (error) {
     console.error("[Admin Seed] Error ensuring default admin user:", error);
   }
-}
-
-if (typeof window === "undefined") {
-  ensureAdminUser();
 }
 
 export type Session = typeof auth.$Infer.Session;

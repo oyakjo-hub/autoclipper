@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { headers, cookies } from "next/headers";
-import { auth } from "@/lib/auth";
+import { auth, ensureAdminUser } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { AdminUserToggle } from "@/components/admin/admin-user-toggle";
 import { AdminPlanSelect } from "@/components/admin/admin-plan-select";
@@ -27,6 +27,7 @@ export default async function AdminPage({
 }: {
   searchParams: Promise<{ user?: string; table?: string; page?: string }>;
 }) {
+  await ensureAdminUser();
   const session = await auth.api.getSession({ headers: await headers() });
 
   if (!session?.user) {

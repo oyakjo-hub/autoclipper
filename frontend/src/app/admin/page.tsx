@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { AdminUserToggle } from "@/components/admin/admin-user-toggle";
+import { AdminPlanSelect } from "@/components/admin/admin-plan-select";
+import { AdminUnlockForm } from "@/components/admin/admin-unlock-form";
 import {
   RuntimeSettingsForm,
   type RuntimeSetting,
@@ -48,6 +50,13 @@ export default async function AdminPage({
         <p className="mt-3 text-sm text-gray-600">You are signed in, but your account is not an admin.</p>
       </main>
     );
+  }
+
+  const cookieStore = await cookies();
+  const isUnlocked = cookieStore.get("admin_unlocked")?.value === "true";
+
+  if (!isUnlocked) {
+    return <AdminUnlockForm />;
   }
 
   const { user: selectedUserId } = await searchParams;
@@ -344,9 +353,7 @@ export default async function AdminPage({
                     </Link>
                   </td>
                   <td className="px-4 py-3">
-                    <Badge variant="outline" className="capitalize">
-                      {user.plan}
-                    </Badge>
+                    <AdminPlanSelect userId={user.id} currentPlan={user.plan} />
                   </td>
                   <td className="px-4 py-3">
                     {user.is_admin ? (

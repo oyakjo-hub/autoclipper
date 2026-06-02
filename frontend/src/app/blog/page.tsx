@@ -7,19 +7,19 @@ import { Badge } from "@/components/ui/badge";
 import { HOSTED_APP_URL, blogPosts, getSiteUrl } from "@/lib/blog-posts";
 
 export const metadata: Metadata = {
-  title: "SupoClip Blog | AI Video Clipping Guides",
+  title: "AutoClipper AI Blog | Panduan AI Video Clipping",
   description:
-    "SEO guides, product comparisons, and creator workflows for turning long-form video into social-ready shorts with SupoClip.",
+    "Panduan SEO, perbandingan produk, dan alur kerja kreator untuk mengubah video panjang menjadi klip pendek yang siap viral dengan AutoClipper AI.",
   alternates: {
     canonical: `${getSiteUrl()}/blog`,
   },
   openGraph: {
-    title: "SupoClip Blog",
+    title: "AutoClipper AI Blog",
     description:
-      "Guides and comparisons for AI video clipping, auto captions, vertical reframing, and short-form video workflows.",
+      "Panduan dan perbandingan untuk AI video clipping, subtitle otomatis, pembingkaian vertikal, dan alur kerja video pendek.",
     type: "website",
     url: `${getSiteUrl()}/blog`,
-    siteName: "SupoClip",
+    siteName: "AutoClipper AI",
   },
 };
 
@@ -31,12 +31,12 @@ export default function BlogIndexPage() {
       <header className="border-b bg-background/95">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
           <Link href="/" className="flex items-center gap-2.5">
-            <Image src="/logo.png" alt="SupoClip" width={24} height={24} className="rounded-lg" />
+            <Image src="/logo.png" alt="AutoClipper AI" width={24} height={24} className="rounded-lg" />
             <span
               className="text-lg font-bold tracking-tight"
               style={{ fontFamily: "var(--font-syne), var(--font-geist-sans), system-ui" }}
             >
-              SupoClip
+              AutoClipper AI
             </span>
           </Link>
           <div className="flex items-center gap-2">
@@ -63,7 +63,7 @@ export default function BlogIndexPage() {
             <a href={HOSTED_APP_URL} target="_blank" rel="noopener noreferrer">
               <Badge variant="outline" className="gap-2">
                 <ExternalLink className="h-3.5 w-3.5" />
-                Try hosted SupoClip
+                Coba AutoClipper AI
               </Badge>
             </a>
           </div>

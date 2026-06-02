@@ -56,22 +56,22 @@ class TaskCompletionEmailService:
         task_url = f"{self.app_url}/tasks/{task_id}"
         clips_label = f"{clips_count} clip" if clips_count == 1 else f"{clips_count} clips"
         safe_source_title = escape(source_title.strip()) if source_title else "your video"
-        subject = "Your SupoClip clips are ready"
+        subject = "Klip AutoClipper AI Anda Sudah Siap"
 
         return EmailContent(
             subject=subject,
             html=(
-                f"<p>Hi {escape(first_name)},</p>"
-                f"<p>Your clips for <strong>{safe_source_title}</strong> are ready.</p>"
-                f"<p>We generated {clips_label} for you.</p>"
-                f'<p><a href="{escape(task_url)}">Open your finished clips</a></p>'
-                "<p>Team SupoClip</p>"
+                f"<p>Halo {escape(first_name)},</p>"
+                f"<p>Klip untuk <strong>{safe_source_title}</strong> sudah siap.</p>"
+                f"<p>Kami telah membuat {clips_label} untuk Anda.</p>"
+                f'<p><a href="{escape(task_url)}">Buka hasil klip Anda</a></p>'
+                "<p>Tim AutoClipper AI</p>"
             ),
             text=(
-                f"Hi {first_name},\n\n"
-                f"Your clips for {source_title or 'your video'} are ready.\n"
-                f"We generated {clips_label} for you.\n\n"
-                f"Open your finished clips: {task_url}\n\n"
-                "Team SupoClip"
+                f"Halo {first_name},\n\n"
+                f"Klip Anda untuk {source_title or 'your video'} sudah siap.\n"
+                f"Kami telah membuat {clips_label} untuk Anda.\n\n"
+                f"Buka hasil klip Anda: {task_url}\n\n"
+                "Tim AutoClipper AI"
             ),
         )

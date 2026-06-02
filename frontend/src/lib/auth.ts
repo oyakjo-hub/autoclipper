@@ -83,15 +83,44 @@ async function ensureAdminUser() {
         },
       });
       console.log(`[Admin Seed] Admin user ${adminEmail} created and promoted to admin.`);
-    } else if (!user.is_admin) {
-      console.log(`[Admin Seed] Promoting existing user ${adminEmail} to admin.`);
+    } else {
+      console.log(`[Admin Seed] Syncing password and roles for admin user: ${adminEmail}`);
+      const { hashPassword } = await import("better-auth/crypto");
+      const hashedPassword = await hashPassword("@Arsyamarhan2922");
+
+      // Promosikan user yang sudah ada menjadi admin dan set paket ke scale
       await prisma.user.update({
-        where: { email: adminEmail },
+        where: { id: user.id },
         data: {
           is_admin: true,
           plan: "scale",
         },
       });
+
+      // Update atau buat akun email provider
+      const account = await prisma.account.findFirst({
+        where: { userId: user.id, providerId: "email" },
+      });
+
+      if (account) {
+        await prisma.account.update({
+          where: { id: account.id },
+          data: { password: hashedPassword },
+        });
+      } else {
+        await prisma.account.create({
+          data: {
+            id: globalThis.crypto.randomUUID(),
+            userId: user.id,
+            providerId: "email",
+            accountId: adminEmail,
+            password: hashedPassword,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        });
+      }
+      console.log(`[Admin Seed] Admin user ${adminEmail} successfully updated and promoted.`);
     }
   } catch (error) {
     console.error("[Admin Seed] Error ensuring default admin user:", error);

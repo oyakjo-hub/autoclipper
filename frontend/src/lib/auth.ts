@@ -36,6 +36,8 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
+  secret: process.env.BETTER_AUTH_SECRET || "dummy_secret_for_build_time_only_1234567890",
+  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3107",
   user: {
     additionalFields: {
       is_admin: {

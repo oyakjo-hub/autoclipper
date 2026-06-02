@@ -31,13 +31,35 @@ class Base(DeclarativeBase):
 
 
 def _build_engine(database_url: str) -> AsyncEngine:
+    import urllib.parse
+    parsed = urllib.parse.urlparse(database_url)
+    query_params = urllib.parse.parse_qs(parsed.query)
+    
+    has_ssl = 'sslmode' in query_params or 'ssl' in query_params
+    new_query_params = {k: v for k, v in query_params.items() if k not in ('sslmode', 'ssl')}
+    new_query_str = urllib.parse.urlencode(new_query_params, doseq=True)
+    
+    clean_url = urllib.parse.urlunparse((
+        parsed.scheme,
+        parsed.netloc,
+        parsed.path,
+        parsed.params,
+        new_query_str,
+        parsed.fragment
+    ))
+    
+    connect_args = {}
+    if has_ssl:
+        connect_args["ssl"] = True
+
     return create_async_engine(
-        database_url,
+        clean_url,
         echo=False,
         pool_size=10,
         max_overflow=20,
         pool_pre_ping=True,
         pool_recycle=3600,
+        connect_args=connect_args,
     )
 
 

@@ -90,43 +90,132 @@ async function runPrismaMigrate() {
 async function ensureDatabaseSchema() {
   if (schemaMigrated) return;
   try {
-    console.log("[Db Migration] Checking if 'users' table exists...");
+    console.log("[Db Migration] Ensuring all tables exist (self-healing raw SQL)...");
     
-    // Check if 'users' table exists
-    const result = await prisma.$queryRawUnsafe<{ exists: boolean }[]>(`
-      SELECT EXISTS (
-        SELECT FROM information_schema.tables 
-        WHERE table_schema = 'public' 
-        AND table_name = 'users'
+    // 1. Ensure all core tables exist (run in dependency order)
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "users" (
+        id VARCHAR(36) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        "emailVerified" BOOLEAN NOT NULL DEFAULT false,
+        image VARCHAR(500),
+        "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `);
     
-    const usersTableExists = result?.[0]?.exists;
-    console.log(`[Db Migration] 'users' table exists: ${usersTableExists}`);
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "sources" (
+        id VARCHAR(36) PRIMARY KEY,
+        type VARCHAR(20) NOT NULL,
+        title VARCHAR(500) NOT NULL,
+        url VARCHAR(1000),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "tasks" (
+        id VARCHAR(36) PRIMARY KEY,
+        user_id VARCHAR(36) NOT NULL REFERENCES "users"(id) ON DELETE CASCADE,
+        source_id VARCHAR(36) REFERENCES "sources"(id) ON DELETE SET NULL,
+        generated_clips_ids VARCHAR(36)[],
+        status VARCHAR(20) NOT NULL DEFAULT 'pending',
+        progress INTEGER DEFAULT 0,
+        progress_message TEXT,
+        font_family VARCHAR(100) DEFAULT 'TikTokSans-Regular',
+        font_size INTEGER DEFAULT 24,
+        font_color VARCHAR(7) DEFAULT '#FFFFFF',
+        caption_template VARCHAR(50) DEFAULT 'default',
+        include_broll BOOLEAN DEFAULT false,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        completion_notification_sent_at TIMESTAMP WITH TIME ZONE
+      );
+    `);
+
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "session" (
+        id VARCHAR(36) PRIMARY KEY,
+        "expiresAt" TIMESTAMP WITH TIME ZONE NOT NULL,
+        token VARCHAR(255) UNIQUE NOT NULL,
+        "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL,
+        "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL,
+        "ipAddress" VARCHAR(255),
+        "userAgent" TEXT,
+        "userId" VARCHAR(36) NOT NULL REFERENCES "users"(id) ON DELETE CASCADE
+      );
+    `);
+
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "account" (
+        id VARCHAR(36) PRIMARY KEY,
+        "accountId" VARCHAR(255) NOT NULL,
+        "providerId" VARCHAR(255) NOT NULL,
+        "userId" VARCHAR(36) NOT NULL REFERENCES "users"(id) ON DELETE CASCADE,
+        "accessToken" TEXT,
+        "refreshToken" TEXT,
+        "idToken" TEXT,
+        "accessTokenExpiresAt" TIMESTAMP WITH TIME ZONE,
+        "refreshTokenExpiresAt" TIMESTAMP WITH TIME ZONE,
+        scope TEXT,
+        password TEXT,
+        "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL,
+        "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL
+      );
+    `);
+
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "verification" (
+        id VARCHAR(36) PRIMARY KEY,
+        identifier VARCHAR(255) NOT NULL,
+        value VARCHAR(255) NOT NULL,
+        "expiresAt" TIMESTAMP WITH TIME ZONE NOT NULL,
+        "createdAt" TIMESTAMP WITH TIME ZONE,
+        "updatedAt" TIMESTAMP WITH TIME ZONE
+      );
+    `);
+
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "stripe_webhook_events" (
+        id VARCHAR(255) PRIMARY KEY,
+        type VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "app_settings" (
+        setting_key VARCHAR(100) PRIMARY KEY,
+        encrypted_value TEXT NOT NULL,
+        prefer_admin_value BOOLEAN NOT NULL DEFAULT false,
+        updated_by VARCHAR(36) REFERENCES "users"(id) ON DELETE SET NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    console.log("[Db Migration] Ensuring all columns on 'users' table exist...");
     
-    if (!usersTableExists) {
-      console.log("[Db Migration] Database is empty or 'users' table is missing. Running prisma migrate deploy...");
-      await runPrismaMigrate();
-    } else {
-      console.log("[Db Migration] Running auto-migration for missing columns on 'users' table...");
-      // Add missing columns to users table
-      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS first_name VARCHAR(100);`);
-      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS last_name VARCHAR(100);`);
-      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255);`);
-      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS default_font_family VARCHAR(100) DEFAULT 'TikTokSans-Regular';`);
-      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS default_font_size INTEGER DEFAULT 24;`);
-      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS default_font_color VARCHAR(7) DEFAULT '#FFFFFF';`);
-      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS notify_on_completion BOOLEAN DEFAULT true;`);
-      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false;`);
-      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS plan VARCHAR(20) DEFAULT 'free';`);
-      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS subscription_status VARCHAR(20) DEFAULT 'inactive';`);
-      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS stripe_customer_id VARCHAR(255);`);
-      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS stripe_subscription_id VARCHAR(255);`);
-      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS billing_period_start TIMESTAMP WITH TIME ZONE;`);
-      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS billing_period_end TIMESTAMP WITH TIME ZONE;`);
-      await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMP WITH TIME ZONE;`);
-      console.log("[Db Migration] Auto-migration columns verified.");
-    }
+    // 2. Add missing columns to users table
+    await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS first_name VARCHAR(100);`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS last_name VARCHAR(100);`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255);`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS default_font_family VARCHAR(100) DEFAULT 'TikTokSans-Regular';`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS default_font_size INTEGER DEFAULT 24;`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS default_font_color VARCHAR(7) DEFAULT '#FFFFFF';`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS notify_on_completion BOOLEAN DEFAULT true;`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT false;`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS plan VARCHAR(20) DEFAULT 'free';`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS subscription_status VARCHAR(20) DEFAULT 'inactive';`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS stripe_customer_id VARCHAR(255);`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS stripe_subscription_id VARCHAR(255);`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS billing_period_start TIMESTAMP WITH TIME ZONE;`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS billing_period_end TIMESTAMP WITH TIME ZONE;`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "users" ADD COLUMN IF NOT EXISTS trial_ends_at TIMESTAMP WITH TIME ZONE;`);
+    console.log("[Db Migration] Auto-migration columns verified.");
     
     schemaMigrated = true;
     console.log("[Db Migration] Auto-migration completed successfully.");

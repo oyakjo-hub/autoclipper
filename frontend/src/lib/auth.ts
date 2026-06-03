@@ -282,9 +282,15 @@ export async function ensureAdminUser() {
         },
       });
 
-      // Update atau buat akun email provider
-      const account = await prisma.account.findFirst({
+      // Bersihkan akun duplikat usang dengan providerId "email" (dari bug sebelumnya)
+      await prisma.account.deleteMany({
         where: { userId: user.id, providerId: "email" },
+      });
+
+      // Update atau buat akun credential provider
+      // better-auth menggunakan providerId "credential" untuk autentikasi email+password
+      const account = await prisma.account.findFirst({
+        where: { userId: user.id, providerId: "credential" },
       });
 
       if (account) {
@@ -292,18 +298,20 @@ export async function ensureAdminUser() {
           where: { id: account.id },
           data: { password: hashedPassword },
         });
+        console.log(`[Admin Seed] Updated password for credential account (id: ${account.id}).`);
       } else {
         await prisma.account.create({
           data: {
             id: globalThis.crypto.randomUUID(),
             userId: user.id,
-            providerId: "email",
+            providerId: "credential",
             accountId: adminEmail,
             password: hashedPassword,
             createdAt: new Date(),
             updatedAt: new Date(),
           },
         });
+        console.log(`[Admin Seed] Created new credential account for admin.`);
       }
       console.log(`[Admin Seed] Admin user ${adminEmail} successfully updated and promoted.`);
     }

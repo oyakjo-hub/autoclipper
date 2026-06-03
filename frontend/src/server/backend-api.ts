@@ -30,18 +30,40 @@ export async function fetchBackend(
   init: RequestInit & {
     userId?: string;
     extraHeaders?: HeadersInit;
+    timeoutMs?: number;
   } = {},
 ) {
-  const { userId, extraHeaders, headers, ...rest } = init;
+  const { userId, extraHeaders, headers, timeoutMs, ...rest } = init;
 
-  return fetch(buildBackendUrl(path), {
-    ...rest,
-    headers: {
-      ...(userId ? buildBackendAuthHeaders(userId) : {}),
-      ...(headers ?? {}),
-      ...(extraHeaders ?? {}),
-    },
-  });
+  let signal = rest.signal;
+  let timeoutId: NodeJS.Timeout | undefined;
+
+  if (timeoutMs && !signal) {
+    if ("timeout" in AbortSignal) {
+      signal = (AbortSignal as unknown as { timeout: (ms: number) => AbortSignal }).timeout(timeoutMs);
+    } else {
+      const controller = new AbortController();
+      signal = controller.signal;
+      timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    }
+  }
+
+  try {
+    const res = await fetch(buildBackendUrl(path), {
+      ...rest,
+      signal,
+      headers: {
+        ...(userId ? buildBackendAuthHeaders(userId) : {}),
+        ...(headers ?? {}),
+        ...(extraHeaders ?? {}),
+      },
+    });
+    return res;
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  }
 }
 
 export function createProxyResponse(

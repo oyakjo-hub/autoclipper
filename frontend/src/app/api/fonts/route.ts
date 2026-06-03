@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { auth } from "@/lib/auth";
-import { buildBackendAuthHeaders } from "@/lib/backend-auth";
+import { fetchBackend } from "@/server/backend-api";
 
 export async function GET() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -10,26 +10,29 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const apiUrl =
-    process.env.BACKEND_INTERNAL_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    "http://localhost:8000";
-  const normalizedApiUrl = apiUrl.replace(/\/$/, "");
-  const backendAuthHeaders = buildBackendAuthHeaders(session.user.id);
-
-  let upstream = await fetch(`${normalizedApiUrl}/fonts`, {
-    headers: {
-      ...backendAuthHeaders,
-    },
-    cache: "no-store",
-  });
-
-  if (upstream.status === 404) {
-    upstream = await fetch(`${normalizedApiUrl}/api/fonts`, {
-      headers: {
-        ...backendAuthHeaders,
-      },
+  let upstream: Response;
+  try {
+    upstream = await fetchBackend("/fonts", {
+      method: "GET",
+      userId: session.user.id,
+      timeoutMs: 4000,
       cache: "no-store",
+    });
+
+    if (upstream.status === 404) {
+      upstream = await fetchBackend("/api/fonts", {
+        method: "GET",
+        userId: session.user.id,
+        timeoutMs: 4000,
+        cache: "no-store",
+      });
+    }
+  } catch (err) {
+    console.error("[fonts] Backend unreachable:", err);
+    return NextResponse.json({
+      fonts: [
+        { name: "TikTokSans-Regular", display_name: "TikTok Sans Regular" }
+      ]
     });
   }
 

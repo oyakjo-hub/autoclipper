@@ -25,8 +25,11 @@ const trustedOrigins = Array.from(
     [
       toOrigin(process.env.NEXT_PUBLIC_APP_URL),
       toOrigin(process.env.BETTER_AUTH_URL),
+      "http://localhost:3000",
       "http://localhost:3107",
+      "http://sp.localhost:3000",
       "http://sp.localhost:3107",
+      "http://supoclip.localhost:3000",
       "http://supoclip.localhost:3107",
     ].filter((origin): origin is string => Boolean(origin))
   )
@@ -37,11 +40,15 @@ export const auth = betterAuth({
     provider: "postgresql",
   }),
   secret: process.env.BETTER_AUTH_SECRET || "dummy_secret_for_build_time_only_1234567890",
-  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3107",
+  baseURL: process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
   user: {
     additionalFields: {
       is_admin: {
         type: "boolean",
+        input: false,
+      },
+      plan: {
+        type: "string",
         input: false,
       },
     },
@@ -56,7 +63,10 @@ export const auth = betterAuth({
   ],
 });
 
+// Flag per-process agar skema DB dan admin seed hanya dijalankan sekali
 let schemaMigrated = false;
+let adminSeeded = false;
+
 
 async function runPrismaMigrate() {
   const { exec } = await import("child_process");
@@ -236,8 +246,14 @@ async function ensureDatabaseSchema() {
 }
 
 // Ensure default admin user exists on startup
+// Hanya dijalankan satu kali per-process untuk performa optimal
 export async function ensureAdminUser() {
   if (process.env.NEXT_PHASE === "phase-production-build") {
+    return;
+  }
+
+  // Jika sudah di-seed di process ini, lewati
+  if (adminSeeded) {
     return;
   }
   
@@ -326,8 +342,11 @@ export async function ensureAdminUser() {
       }
       console.log(`[Admin Seed] Admin user ${adminEmail} successfully updated and promoted.`);
     }
+    // Tandai sudah selesai sehingga tidak dijalankan lagi di process ini
+    adminSeeded = true;
   } catch (error) {
     console.error("[Admin Seed] Error ensuring default admin user:", error);
+    // Jangan set adminSeeded = true saat error, agar retry bisa terjadi
   }
 }
 

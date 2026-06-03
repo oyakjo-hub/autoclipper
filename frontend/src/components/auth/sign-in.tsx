@@ -23,10 +23,25 @@ export function SignIn() {
     const response = await signIn.email({
       email,
       password,
+      fetchOptions: {
+        onError(ctx) {
+          setMessage(ctx.error.message || "Login gagal. Periksa email dan password Anda.");
+        },
+      },
     });
 
-    if (response.error) {
-      setMessage(response.error.message || "Failed to sign in");
+    if (response?.error) {
+      const rawMsg = response.error.message || "";
+      // Terjemahkan pesan error umum ke Bahasa Indonesia
+      if (rawMsg.toLowerCase().includes("invalid") || rawMsg.toLowerCase().includes("credentials")) {
+        setMessage("Email atau password tidak valid. Silakan coba lagi.");
+      } else if (rawMsg.toLowerCase().includes("not found") || rawMsg.toLowerCase().includes("no user")) {
+        setMessage("Akun dengan email ini tidak ditemukan.");
+      } else if (rawMsg.toLowerCase().includes("disabled") || rawMsg.toLowerCase().includes("banned")) {
+        setMessage("Akun ini dinonaktifkan. Hubungi administrator.");
+      } else {
+        setMessage(rawMsg || "Login gagal. Periksa email dan password Anda.");
+      }
       setLoading(false);
       return;
     }
@@ -34,21 +49,23 @@ export function SignIn() {
     track("signin_completed", {
       auth_method: "email",
     });
-    setMessage("Signed in successfully!");
+
+    setMessage("Login berhasil! Mengalihkan...");
     setLoading(false);
 
-    // Redirect after successful sign in
+    // Setelah login berhasil, gunakan router.refresh() agar session diperbarui,
+    // lalu redirect ke home (halaman utama mendeteksi is_admin sendiri).
     setTimeout(() => {
       router.push("/");
       router.refresh();
-    }, 500);
+    }, 300);
   };
 
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle>Sign In</CardTitle>
-        <CardDescription>Sign in to your account</CardDescription>
+        <CardTitle>Masuk</CardTitle>
+        <CardDescription>Masuk ke akun Anda untuk melanjutkan</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -59,6 +76,7 @@ export function SignIn() {
             onChange={(e) => setEmail(e.target.value)}
             required
             disabled={loading}
+            autoComplete="email"
           />
           <Input
             type="password"
@@ -67,13 +85,14 @@ export function SignIn() {
             onChange={(e) => setPassword(e.target.value)}
             required
             disabled={loading}
+            autoComplete="current-password"
           />
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Signing In..." : "Sign In"}
+            {loading ? "Sedang masuk..." : "Masuk"}
           </Button>
         </form>
         {message && (
-          <p className={`mt-4 text-sm ${message.includes("successfully") ? "text-green-600" : "text-red-600"}`}>
+          <p className={`mt-4 text-sm text-center ${message.includes("berhasil") ? "text-green-600" : "text-red-600"}`}>
             {message}
           </p>
         )}

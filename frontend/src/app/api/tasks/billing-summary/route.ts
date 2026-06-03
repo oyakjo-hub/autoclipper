@@ -14,11 +14,29 @@ export async function GET() {
     process.env.BACKEND_INTERNAL_URL ||
     process.env.NEXT_PUBLIC_API_URL ||
     "http://localhost:8000";
-  const upstream = await fetch(`${apiUrl}/tasks/billing/summary`, {
-    method: "GET",
-    headers: buildBackendAuthHeaders(session.user.id),
-    cache: "no-store",
-  });
+
+  let upstream: Response;
+  try {
+    upstream = await fetch(`${apiUrl}/tasks/billing/summary`, {
+      method: "GET",
+      headers: buildBackendAuthHeaders(session.user.id),
+      cache: "no-store",
+    });
+  } catch (err) {
+    console.error("[billing-summary] Backend unreachable:", err);
+    // Kembalikan struktur default yang aman agar UI tidak crash
+    return NextResponse.json({
+      monetization_enabled: false,
+      plan: "free",
+      subscription_status: "inactive",
+      usage_count: 0,
+      usage_limit: null,
+      remaining: null,
+      can_create_task: true,
+      upgrade_required: false,
+      reason: null,
+    });
+  }
 
   const responseText = await upstream.text();
   const traceId = upstream.headers.get("x-trace-id");

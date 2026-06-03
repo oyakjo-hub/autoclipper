@@ -8,11 +8,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
-  Scissors,
   Sparkles,
   Youtube,
   ArrowRight,
-  Play,
   Target,
   ScanFace,
   Type,
@@ -21,7 +19,6 @@ import {
   Share2,
   Wand2,
   ChevronDown,
-  ExternalLink,
   Check,
   Zap,
   Menu,

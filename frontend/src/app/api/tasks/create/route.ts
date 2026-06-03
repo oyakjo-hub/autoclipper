@@ -15,14 +15,24 @@ export async function POST(request: Request) {
     process.env.BACKEND_INTERNAL_URL ||
     process.env.NEXT_PUBLIC_API_URL ||
     "http://localhost:8000";
-  const upstream = await fetch(`${apiUrl}/tasks/`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...buildBackendAuthHeaders(session.user.id),
-    },
-    body: payload,
-  });
+
+  let upstream: Response;
+  try {
+    upstream = await fetch(`${apiUrl}/tasks/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...buildBackendAuthHeaders(session.user.id),
+      },
+      body: payload,
+    });
+  } catch (err) {
+    console.error("[tasks/create] Backend unreachable:", err);
+    return NextResponse.json(
+      { error: "Backend sedang tidak tersedia. Pastikan backend sudah di-deploy dan NEXT_PUBLIC_API_URL sudah dikonfigurasi.", code: "BACKEND_UNAVAILABLE" },
+      { status: 503 }
+    );
+  }
 
   const responseText = await upstream.text();
   const traceId = upstream.headers.get("x-trace-id");

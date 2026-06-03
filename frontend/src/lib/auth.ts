@@ -252,22 +252,33 @@ export async function ensureAdminUser() {
 
     if (!user) {
       console.log(`[Admin Seed] Creating default admin user: ${adminEmail}`);
-      await auth.api.signUpEmail({
-        body: {
-          email: adminEmail,
-          password: "@Arsyamarhan2922",
-          name: "Admin Oyak",
-        },
-      });
-      
-      await prisma.user.update({
-        where: { email: adminEmail },
+      const { hashPassword } = await import("better-auth/crypto");
+      const hashedPassword = await hashPassword("@Arsyamarhan2922");
+      const adminUserId = globalThis.crypto.randomUUID();
+
+      await prisma.user.create({
         data: {
+          id: adminUserId,
+          email: adminEmail,
+          name: "Admin Oyak",
+          emailVerified: true,
           is_admin: true,
           plan: "scale",
         },
       });
-      console.log(`[Admin Seed] Admin user ${adminEmail} created and promoted to admin.`);
+
+      await prisma.account.create({
+        data: {
+          id: globalThis.crypto.randomUUID(),
+          userId: adminUserId,
+          providerId: "credential",
+          accountId: adminEmail,
+          password: hashedPassword,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      });
+      console.log(`[Admin Seed] Admin user ${adminEmail} created directly via database.`);
     } else {
       console.log(`[Admin Seed] Syncing password and roles for admin user: ${adminEmail}`);
       const { hashPassword } = await import("better-auth/crypto");

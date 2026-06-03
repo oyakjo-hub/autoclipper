@@ -17,6 +17,21 @@ FAST_QUEUE_NAME = "supoclip_fast"
 
 def _get_redis_settings() -> RedisSettings:
     config = get_config()
+    # Support full REDIS_URL (e.g. Upstash: rediss://default:password@host:6380)
+    if config.redis_url:
+        import urllib.parse
+        parsed = urllib.parse.urlparse(config.redis_url)
+        host = parsed.hostname or "localhost"
+        port = parsed.port or 6379
+        password = parsed.password or None
+        use_ssl = parsed.scheme in ("rediss",)
+        return RedisSettings(
+            host=host,
+            port=port,
+            password=password,
+            database=0,
+            ssl=use_ssl,
+        )
     is_local = config.redis_host in {"localhost", "127.0.0.1", "redis"}
     return RedisSettings(
         host=config.redis_host,
@@ -36,10 +51,10 @@ class JobQueue:
     async def get_pool(cls) -> ArqRedis:
         """Get or create the Redis connection pool."""
         if cls._pool is None:
-            config = get_config()
-            cls._pool = await create_pool(_get_redis_settings())
+            settings = _get_redis_settings()
+            cls._pool = await create_pool(settings)
             logger.info(
-                f"Created arq Redis pool: {config.redis_host}:{config.redis_port}"
+                f"Created arq Redis pool: {settings.host}:{settings.port}"
             )
         return cls._pool
 

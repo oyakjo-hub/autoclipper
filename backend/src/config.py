@@ -45,7 +45,8 @@ class Config:
 
         self.temp_dir = os.getenv("TEMP_DIR", "temp")
 
-        # Redis configuration
+        # Redis configuration - supports both REDIS_URL and individual settings
+        self.redis_url = self._get_optional_env("REDIS_URL")  # Full URL e.g. rediss://...
         self.redis_host = os.getenv("REDIS_HOST", "localhost")
         self.redis_port = int(os.getenv("REDIS_PORT", "6379"))
         self.redis_password = self._get_optional_env("REDIS_PASSWORD")

@@ -895,14 +895,20 @@ class TaskService:
             "add_subtitles": True,
             **normalize_clip_cleanup_settings(),
         }
-        is_local = self.config.redis_host in {"localhost", "127.0.0.1", "redis"}
-        redis_client = redis.Redis(
-            host=self.config.redis_host,
-            port=self.config.redis_port,
-            password=self.config.redis_password,
-            decode_responses=True,
-            ssl=not is_local,
-        )
+        if self.config.redis_url:
+            redis_client = redis.Redis.from_url(
+                self.config.redis_url,
+                decode_responses=True,
+            )
+        else:
+            is_local = self.config.redis_host in {"localhost", "127.0.0.1", "redis"}
+            redis_client = redis.Redis(
+                host=self.config.redis_host,
+                port=self.config.redis_port,
+                password=self.config.redis_password,
+                decode_responses=True,
+                ssl=not is_local,
+            )
         try:
             payload = await redis_client.get(f"task_source:{task_id}")
         except Exception as exc:

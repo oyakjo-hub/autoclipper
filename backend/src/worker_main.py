@@ -18,5 +18,14 @@ logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     logger.info("Starting SupoClip worker...")
-    logger.info(f"Redis: {Config().redis_host}:{Config().redis_port}")
+    config = Config()
+    if config.redis_url:
+        import urllib.parse
+        try:
+            parsed = urllib.parse.urlparse(config.redis_url)
+            logger.info(f"Redis: {parsed.hostname}:{parsed.port}")
+        except Exception:
+            logger.info("Redis: <url>")
+    else:
+        logger.info(f"Redis: {config.redis_host}:{config.redis_port}")
     run_worker(WorkerSettings)

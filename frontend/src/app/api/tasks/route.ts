@@ -9,11 +9,20 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const upstream = await fetchBackend("/tasks/", {
-    method: "GET",
-    userId: session.user.id,
-    cache: "no-store",
-  });
+  let upstream: Response;
+  try {
+    upstream = await fetchBackend("/tasks/", {
+      method: "GET",
+      userId: session.user.id,
+      cache: "no-store",
+    });
+  } catch (err) {
+    console.error("[tasks GET] Backend unreachable:", err);
+    return NextResponse.json(
+      { error: "Backend sedang tidak tersedia. Silakan coba lagi nanti.", code: "BACKEND_UNAVAILABLE" },
+      { status: 503 }
+    );
+  }
 
   return createProxyResponse(upstream);
 }

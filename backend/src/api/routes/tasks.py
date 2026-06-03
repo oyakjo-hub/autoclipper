@@ -33,6 +33,11 @@ router = APIRouter(prefix="/tasks", tags=["tasks"])
 
 
 def _get_redis_client(config) -> redis.Redis:
+    if config.redis_url:
+        return redis.Redis.from_url(
+            config.redis_url,
+            decode_responses=True,
+        )
     is_local = config.redis_host in {"localhost", "127.0.0.1", "redis"}
     return redis.Redis(
         host=config.redis_host,

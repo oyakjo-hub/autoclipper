@@ -23,11 +23,20 @@ export async function GET() {
     return adminCheck.error;
   }
 
-  const upstream = await fetchBackend("/admin/runtime-settings", {
-    method: "GET",
-    userId: adminCheck.session.user.id,
-    cache: "no-store",
-  });
+  let upstream: Response;
+  try {
+    upstream = await fetchBackend("/admin/runtime-settings", {
+      method: "GET",
+      userId: adminCheck.session.user.id,
+      cache: "no-store",
+    });
+  } catch (err) {
+    console.error("[runtime-settings GET] Backend unreachable:", err);
+    return NextResponse.json(
+      { error: "Backend sedang tidak tersedia. Silakan coba lagi nanti.", code: "BACKEND_UNAVAILABLE" },
+      { status: 503 }
+    );
+  }
 
   return createTextProxyResponse(upstream);
 }
@@ -39,13 +48,22 @@ export async function PATCH(request: Request) {
   }
 
   const body = await request.text();
-  const upstream = await fetchBackend("/admin/runtime-settings", {
-    method: "PATCH",
-    userId: adminCheck.session.user.id,
-    extraHeaders: { "Content-Type": "application/json" },
-    body,
-    cache: "no-store",
-  });
+  let upstream: Response;
+  try {
+    upstream = await fetchBackend("/admin/runtime-settings", {
+      method: "PATCH",
+      userId: adminCheck.session.user.id,
+      extraHeaders: { "Content-Type": "application/json" },
+      body,
+      cache: "no-store",
+    });
+  } catch (err) {
+    console.error("[runtime-settings PATCH] Backend unreachable:", err);
+    return NextResponse.json(
+      { error: "Backend sedang tidak tersedia. Silakan coba lagi nanti.", code: "BACKEND_UNAVAILABLE" },
+      { status: 503 }
+    );
+  }
 
   return createTextProxyResponse(upstream);
 }

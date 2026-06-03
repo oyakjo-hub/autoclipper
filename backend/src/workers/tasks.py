@@ -131,16 +131,30 @@ class WorkerSettings:
     functions = [process_video_task]
     queue_name = "supoclip_tasks"
 
-    is_local = config.redis_host in {"localhost", "127.0.0.1", "redis"}
-
-    # Redis settings from environment
-    redis_settings = RedisSettings(
-        host=config.redis_host,
-        port=config.redis_port,
-        password=config.redis_password,
-        database=0,
-        ssl=not is_local,
-    )
+    # Redis settings from environment (supports both REDIS_URL and individual settings)
+    if config.redis_url:
+        import urllib.parse
+        _parsed = urllib.parse.urlparse(config.redis_url)
+        _host = _parsed.hostname or "localhost"
+        _port = _parsed.port or 6379
+        _password = _parsed.password or None
+        _use_ssl = _parsed.scheme in ("rediss",)
+        redis_settings = RedisSettings(
+            host=_host,
+            port=_port,
+            password=_password,
+            database=0,
+            ssl=_use_ssl,
+        )
+    else:
+        is_local = config.redis_host in {"localhost", "127.0.0.1", "redis"}
+        redis_settings = RedisSettings(
+            host=config.redis_host,
+            port=config.redis_port,
+            password=config.redis_password,
+            database=0,
+            ssl=not is_local,
+        )
 
     # Retry settings
     max_tries = 3  # Retry failed jobs up to 3 times

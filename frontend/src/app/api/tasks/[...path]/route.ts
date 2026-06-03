@@ -20,26 +20,35 @@ async function proxyTaskRequest(
       ? undefined
       : await request.text();
 
-  const upstream = await fetchBackend(targetPath, {
-    method: request.method,
-    userId: session.user.id,
-    extraHeaders: {
-      ...(body && request.headers.get("content-type")
-        ? { "Content-Type": request.headers.get("content-type") as string }
-        : {}),
-      ...(request.headers.get("accept")
-        ? { Accept: request.headers.get("accept") as string }
-        : {}),
-      ...(request.headers.get("range")
-        ? { Range: request.headers.get("range") as string }
-        : {}),
-      ...(request.headers.get("if-range")
-        ? { "If-Range": request.headers.get("if-range") as string }
-        : {}),
-    },
-    body,
-    cache: "no-store",
-  });
+  let upstream: Response;
+  try {
+    upstream = await fetchBackend(targetPath, {
+      method: request.method,
+      userId: session.user.id,
+      extraHeaders: {
+        ...(body && request.headers.get("content-type")
+          ? { "Content-Type": request.headers.get("content-type") as string }
+          : {}),
+        ...(request.headers.get("accept")
+          ? { Accept: request.headers.get("accept") as string }
+          : {}),
+        ...(request.headers.get("range")
+          ? { Range: request.headers.get("range") as string }
+          : {}),
+        ...(request.headers.get("if-range")
+          ? { "If-Range": request.headers.get("if-range") as string }
+          : {}),
+      },
+      body,
+      cache: "no-store",
+    });
+  } catch (err) {
+    console.error("[tasks proxy] Backend unreachable:", err);
+    return NextResponse.json(
+      { error: "Backend sedang tidak tersedia. Silakan coba lagi nanti.", code: "BACKEND_UNAVAILABLE" },
+      { status: 503 }
+    );
+  }
 
   return createProxyResponse(upstream);
 }

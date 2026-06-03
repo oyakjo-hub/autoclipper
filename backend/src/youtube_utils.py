@@ -54,20 +54,19 @@ class YouTubeDownloader:
             "overwrites": True,
             # Optimized for speed and reliability
             "socket_timeout": 30,
-            "retries": 5,  # Increased retries
-            "fragment_retries": 5,
-            "http_chunk_size": 10485760,  # 10MB chunks
+            "retries": 10,  # Increased retries
+            "fragment_retries": 10,
+            "concurrent_fragment_downloads": 4,  # Download fragments concurrently to bypass individual stream speed caps
             # Quiet operation - only errors/warnings
             "quiet": True,
             "no_warnings": False,  # Show warnings but not info
             "ignoreerrors": False,
-            # Enhanced headers to avoid 403 errors
-            "http_headers": {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-                "Accept-Language": "en-US,en;q=0.9",
-                "Accept-Encoding": "gzip, deflate",
-                "Connection": "keep-alive",
+            # Bypass throttling using client impersonation
+            "extractor_args": {
+                "youtube": {
+                    "player_client": ["android", "web"],
+                    "skip": ["hls", "dash"],
+                }
             },
             # Metadata extraction
             "extract_flat": False,

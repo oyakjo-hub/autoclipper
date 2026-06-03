@@ -37,7 +37,7 @@ jobs:
           from huggingface_hub import HfApi
 
           token = os.environ["HF_TOKEN"]
-          username = os.environ.get("HF_USERNAME", "oyakjo")
+          username = os.environ.get("HF_USERNAME") or "oyakjo"
           space_name = os.environ.get("SPACE_NAME", "autoclipper-backend")
           repo_id = f"{username}/{space_name}"
 
